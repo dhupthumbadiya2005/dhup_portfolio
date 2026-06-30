@@ -1,19 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import BlurFade from "@/components/magicui/blur-fade";
 import { ProjectCard } from "@/components/project-card";
 import { DATA } from "@/data/resume";
 
 const BLUR_FADE_DELAY = 0.04;
-const PAGE_SIZE = 3;
+
+function usePageSize() {
+  const [pageSize, setPageSize] = useState(3);
+
+  useEffect(() => {
+    const update = () => setPageSize(window.innerWidth >= 768 ? 4 : 3);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  return pageSize;
+}
 
 export default function ProjectsSection() {
   const [page, setPage] = useState(1);
+  const pageSize = usePageSize();
 
-  const totalPages = Math.ceil(DATA.projects.length / PAGE_SIZE);
-  const start = (page - 1) * PAGE_SIZE;
-  const paginated = DATA.projects.slice(start, start + PAGE_SIZE);
+  const totalPages = Math.ceil(DATA.projects.length / pageSize);
+  const clampedPage = Math.min(page, totalPages);
+  const start = (clampedPage - 1) * pageSize;
+  const paginated = DATA.projects.slice(start, start + pageSize);
 
   return (
     <section id="projects">
@@ -34,7 +48,7 @@ export default function ProjectsSection() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 max-w-[800px] mx-auto auto-rows-fr w-full">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 auto-rows-fr w-full">
           {paginated.map((project, id) => (
             <BlurFade
               key={project.title}
@@ -59,17 +73,17 @@ export default function ProjectsSection() {
           <div className="flex items-center justify-center gap-3">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
+              disabled={clampedPage === 1}
               className="h-8 px-3 text-sm border border-border rounded-lg hover:bg-accent/50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Previous
             </button>
             <span className="text-sm text-muted-foreground tabular-nums">
-              {page} / {totalPages}
+              {clampedPage} / {totalPages}
             </span>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
+              disabled={clampedPage === totalPages}
               className="h-8 px-3 text-sm border border-border rounded-lg hover:bg-accent/50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Next
