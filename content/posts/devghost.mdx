@@ -1,0 +1,158 @@
+---
+title: "DevGhost — Let AI Write Your Git Commit Messages Intelligently Using Gemini AI"
+publishedAt: "2024-05-15"
+author: "Dhup Thumbadiya"
+summary: "Tired of writing lazy commit messages like 'fix stuff' or 'update'? DevGhost is an open-source CLI tool that reads your staged Git diff and uses Gemini AI to generate a meaningful, accurate commit message in seconds."
+image: "/devghost.png"
+---
+
+We've all been there. You've just finished a solid chunk of work — refactored a service, fixed a gnarly bug, added a new feature — and then Git asks you for a commit message. And you type:
+
+```
+git commit -m "fix stuff"
+```
+
+Or worse:
+
+```
+git commit -m "asdfgh"
+```
+
+It's a universal developer sin. Commit history becomes a graveyard of meaningless messages that help nobody — not your teammates, not your future self, not anyone trying to bisect a bug three months later.
+
+I built **DevGhost** to fix exactly this.
+
+## What is DevGhost?
+
+DevGhost is a cross-platform CLI tool that automatically generates meaningful Git commit messages by analyzing your staged diff and sending it to Google's Gemini AI. It understands *what* you actually changed and writes a commit message that accurately describes it.
+
+Install it once, use it everywhere:
+
+```bash
+pip install devghost
+```
+
+## The Problem with Commit Messages
+
+Good commit messages follow conventions like [Conventional Commits](https://www.conventionalcommits.org/) — `feat:`, `fix:`, `refactor:`, `chore:` — with a clear, descriptive subject line. Writing these consistently takes discipline, especially under deadline pressure.
+
+The result? Most codebases have commit history that looks like this:
+
+```
+- update
+- fix
+- wip
+- fix again
+- final fix
+- FINAL fix for real
+- okay this is the actual final fix
+```
+
+This is noise. It makes `git log`, `git bisect`, and code reviews significantly harder.
+
+## How DevGhost Works
+
+The workflow is identical to your existing Git flow — just swap `git commit` for `devghost commit`:
+
+```bash
+# Stage your changes as usual
+git add .
+
+# Let AI write the commit message
+devghost commit
+```
+
+DevGhost will:
+
+1. Run `git diff --staged` to capture everything you've staged
+2. Parse the diff into structured context (files changed, lines added/removed, code patterns)
+3. Send that context to Gemini AI with a carefully crafted prompt
+4. Stream the generated commit message back to your terminal
+5. Execute `git commit -m "<generated message>"` automatically
+
+The whole thing takes under 3 seconds.
+
+## Example Output
+
+Given a diff where you added JWT middleware to an Express app, DevGhost generates:
+
+```
+feat(auth): add JWT middleware for protected route authentication
+
+- Implement verifyToken middleware using jsonwebtoken
+- Apply middleware to /api/user and /api/dashboard routes
+- Return 401 with descriptive error on invalid or expired tokens
+```
+
+That's a commit message that actually tells a story.
+
+## Prompt Engineering
+
+The quality of the output depends entirely on how you frame the request to the model. After a lot of iteration, the prompt that works best is one that:
+
+- Gives the model the raw diff (not a summary — the actual lines)
+- Instructs it to follow Conventional Commits format
+- Tells it to be specific about *what* changed, not just *that* something changed
+- Caps the subject line at 72 characters
+- Uses imperative mood ("add", "fix", "remove" — not "added", "fixed", "removed")
+
+The model I settled on is `gemini-1.5-flash` — fast, cheap, and accurate enough for this use case.
+
+## Secure API Key Storage
+
+DevGhost stores your Gemini API key securely using the OS keychain (via the `keyring` library) — not in a `.env` file or plain config that could accidentally get committed.
+
+First-time setup:
+
+```bash
+devghost setup
+# Enter your Gemini API key when prompted
+# It's stored in your system keychain, never on disk as plain text
+```
+
+After that, it just works.
+
+## Installation & Setup
+
+**Requirements:** Python 3.8+
+
+```bash
+# Install from PyPI
+pip install devghost
+
+# One-time setup — stores your API key securely
+devghost setup
+
+# Use it
+git add .
+devghost commit
+```
+
+Get your free Gemini API key at [aistudio.google.com](https://aistudio.google.com).
+
+## What I Learned Building This
+
+**Diff parsing is harder than it looks.** Raw `git diff` output has a lot of noise — chunk headers, file metadata, binary file indicators. Stripping this down to just the meaningful code changes, without losing context, required careful regex work.
+
+**Prompt length matters.** Large diffs can easily exceed token limits. DevGhost truncates intelligently — it keeps the first and last N lines of each file's diff rather than cutting at a hard character limit, so the model sees the beginning and end of each change.
+
+**Streaming makes it feel fast.** Even if the API call takes 2 seconds, streaming the tokens as they arrive makes the UX feel instant. Python's `google-generativeai` SDK supports streaming with a simple `stream=True` flag.
+
+## What's Next
+
+A few things on the roadmap:
+
+- `devghost amend` — regenerate a message for your last commit
+- Support for OpenAI and Claude models as alternatives to Gemini
+- A `--dry-run` flag to preview without committing
+- VS Code extension so you never have to leave the editor
+
+## Try It
+
+```bash
+pip install devghost
+```
+
+Source code on [GitHub](https://github.com/dhupthumbadiya2005/devghost). Stars appreciated 🙂
+
+If you have feedback or want to contribute, open an issue or reach out on [LinkedIn](https://www.linkedin.com/in/dhupthumbadiya/).
