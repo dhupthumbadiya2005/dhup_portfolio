@@ -18,6 +18,7 @@ export function FloatingSidebar() {
   const socials = [
     { icon: Icons.github, href: DATA.contact.social.GitHub.url, label: "GitHub" },
     { icon: Icons.linkedin, href: DATA.contact.social.LinkedIn.url, label: "LinkedIn" },
+    { icon: Icons.resume, href: DATA.contact.social.Resume.url, label: "Resume" },
     { icon: Icons.email, href: `mailto:${DATA.contact.email}`, label: "Email" },
     { icon: Icons.whatsapp, href: `https://wa.me/${DATA.contact.tel.replace(/\D/g, "")}`, label: "WhatsApp" },
   ];
