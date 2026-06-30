@@ -26,7 +26,7 @@ export function FloatingSidebar() {
   return (
     <>
       {/* Left — social links */}
-      <div className="hidden xl:flex fixed left-8 bottom-1/3 flex-col items-center gap-4">
+      <div className="hidden xl:flex fixed left-8 bottom-1/3 flex-col items-center gap-4 z-5">
         {socials.map(({ icon: Icon, href, label }) => (
           <Link
             key={label}
@@ -43,7 +43,7 @@ export function FloatingSidebar() {
       </div>
 
       {/* Right — scroll to top */}
-      <div className="hidden xl:flex fixed right-8 bottom-1/3 flex-col items-center gap-4">
+      <div className="hidden xl:flex fixed right-8 bottom-1/3 flex-col items-center gap-4 z-5">
         <div className="w-px h-16 bg-border mb-2" />
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
