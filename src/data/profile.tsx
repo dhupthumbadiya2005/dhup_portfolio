@@ -67,6 +67,12 @@ export const PROFILE = {
         icon: Icons.linkedin,
         navbar: true,
       },
+      WhatsApp: {
+        name: "WhatsApp",
+        url: "https://wa.me/917861986355",
+        icon: Icons.whatsapp,
+        navbar: true,
+      },
       Resume: {
         name: "Resume",
         url: "https://drive.google.com/file/d/13DMUB13I3hLiT2Dkid2P4TH6g1X7vGSy/view?usp=sharing",

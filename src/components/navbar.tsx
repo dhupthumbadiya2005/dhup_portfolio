@@ -9,6 +9,15 @@ import {
 } from "@/components/ui/tooltip";
 import { DATA } from "@/data/resume";
 
+const SOCIAL_COLORS: Record<string, string> = {
+  GitHub: "text-[#24292e] dark:text-white",
+  LinkedIn: "text-[#0A66C2]",
+  WhatsApp: "text-[#25D366]",
+  Resume: "text-orange-500",
+  X: "text-black dark:text-white",
+  Youtube: "text-[#FF0000]",
+};
+
 export default function Navbar() {
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-4 z-30">
@@ -56,8 +65,8 @@ export default function Navbar() {
                     target={isExternal ? "_blank" : undefined}
                     rel={isExternal ? "noopener noreferrer" : undefined}
                   >
-                    <DockIcon className="rounded-3xl cursor-pointer size-full bg-background p-0 text-muted-foreground hover:text-foreground hover:bg-muted backdrop-blur-3xl border border-border transition-colors">
-                      <IconComponent className="size-full rounded-sm overflow-hidden object-contain" />
+                    <DockIcon className="rounded-3xl cursor-pointer size-full bg-background p-0 hover:bg-muted backdrop-blur-3xl border border-border transition-colors">
+                      <IconComponent className={`size-full rounded-sm overflow-hidden object-contain ${SOCIAL_COLORS[name] ?? "text-muted-foreground"}`} />
                     </DockIcon>
                   </a>
                 </TooltipTrigger>
