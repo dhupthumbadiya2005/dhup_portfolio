@@ -1,0 +1,886 @@
+---
+title: "System Design — Complete Notes (ByteByteGo Style)"
+publishedAt: "2026-08-02"
+author: "Dhup Thumbadiya"
+summary: "A complete, visual system design guide covering scalability, caching, databases, sharding, queues, CDN, rate limiting, CAP theorem — with real-world case studies and interview tips."
+category: "Engineering"
+---
+
+## The Interview Framework — Do This Every Time
+
+Before writing a single box on the whiteboard, gather requirements. Interviews are lost in the **first 5 minutes** by people who start designing before understanding the problem.
+
+```
+Step 1 → Clarify Requirements   (5 min)
+Step 2 → Estimate Scale         (3 min)
+Step 3 → High-Level Design      (10 min)
+Step 4 → Deep Dive Components   (15 min)
+Step 5 → Bottlenecks & Fixes    (5 min)
+```
+
+### Clarify Requirements
+
+Always ask these 5 questions before anything else:
+
+| Question | Why it matters |
+|---|---|
+| How many users? (DAU / MAU) | Determines if one server is enough or if you need 1000 |
+| Read-heavy or write-heavy? | Read-heavy → add caches/replicas. Write-heavy → partition early |
+| Consistency vs Availability? | Can users see stale data for 1 second? Or must it be exact? |
+| What latency is acceptable? | Feed load: under 200ms. File upload: 2–3s is fine |
+| What data can never be lost? | Photos = never. Like counts = can drift briefly |
+
+### Back-of-Envelope Estimation
+
+Memorize these numbers. Interviewers expect you to use them.
+
+```
+1 million users → ~12 requests/second (assuming 1 req/user/day)
+1 billion users → ~12,000 requests/second
+
+Read/write ratio for social apps: 100:1 (mostly reads)
+
+1 KB per tweet × 100M tweets/day = 100 GB/day of writes
+Storage for 1 year = 36 TB
+
+Image (compressed) = ~300 KB
+Video (1 min, 720p) = ~50 MB
+```
+
+> **Interview Tip:** Don't get the exact number. Get the order of magnitude right. "~10K RPS" is a better answer than a wrong precise number.
+
+---
+
+## Chapter 1 — Scaling a Single Server
+
+### Start Here: The Single Server
+
+Every system starts as one box. You need to know when and how to grow beyond it.
+
+```
+[User] ──HTTP──▶ [Single Server]
+                      │
+                      ├── App logic
+                      ├── Database
+                      └── File storage
+```
+
+**Problem:** One server = one point of failure. One machine's CPU/RAM limit is the system's limit.
+
+---
+
+### Vertical Scaling (Scale Up)
+
+Buy a bigger machine. Go from 4 cores → 32 cores, 16 GB RAM → 512 GB RAM.
+
+```
+Before:          After:
+[4-core box] →  [64-core box]
+```
+
+| Pro | Con |
+|---|---|
+| Zero code changes | Has a hardware ceiling (you can't buy infinitely big) |
+| Simple to reason about | Single point of failure — box dies, everything dies |
+| Works up to ~millions of requests | Very expensive at the top end |
+
+**Use it first.** Don't over-engineer. Vertical scaling buys you time cheaply.
+
+---
+
+### Horizontal Scaling (Scale Out)
+
+Add more identical, cheaper machines. Route traffic across all of them.
+
+```
+              ┌─────────────┐
+              │ Load Balancer│
+              └──────┬──────┘
+         ┌───────────┼───────────┐
+         ▼           ▼           ▼
+    [Server 1]  [Server 2]  [Server 3]
+         │           │           │
+         └───────────┼───────────┘
+                     ▼
+               [Shared Database]
+```
+
+| Pro | Con |
+|---|---|
+| No theoretical ceiling — add boxes as you grow | Need a load balancer |
+| Redundancy — one server dies, others serve traffic | Sessions can't live in one server's memory |
+| Cheap commodity hardware | More moving parts to manage |
+
+**The key insight:** Once you go horizontal, your app servers **must be stateless** — they cannot hold any user-specific memory. All shared state (sessions, counters, locks) moves to a central store like Redis.
+
+---
+
+## Chapter 2 — Load Balancers
+
+### How a Load Balancer Works (4 Steps)
+
+```
+① Client sends request to Load Balancer IP
+② LB picks a healthy server using its algorithm
+③ LB forwards request to that server
+④ Server's response goes back through LB to client
+```
+
+The client never knows which server it's talking to.
+
+### Routing Algorithms
+
+| Algorithm | How it works | Best for |
+|---|---|---|
+| **Round Robin** | Server 1 → Server 2 → Server 3 → Server 1… | Servers with equal capacity |
+| **Least Connections** | Routes to server with fewest open connections | Long-lived connections (WebSockets) |
+| **Weighted Round Robin** | Server A gets 70%, Server B gets 30% (by capacity) | Mixed server sizes |
+| **IP Hash** | Same client IP always goes to same server | When you absolutely need sticky sessions |
+
+### Health Checks
+
+LBs ping each server every few seconds. If a server doesn't respond, traffic stops going to it automatically. This is how you get **zero-downtime failures**.
+
+```
+LB checks every 5s:
+  Server 1 → ✅ alive → gets traffic
+  Server 2 → ❌ no response → removed from pool
+  Server 3 → ✅ alive → gets traffic
+```
+
+### Avoiding LB as Single Point of Failure
+
+```
+DNS → [Active LB] ←→ [Standby LB]  (heartbeat between them)
+        │
+    [App servers]
+```
+
+If the active LB dies, the standby takes the DNS IP via **IP failover** in seconds.
+
+> **Interview Tip:** If they ask "what happens when your load balancer fails?" → say Active-Passive pair with heartbeat and IP failover.
+
+---
+
+## Chapter 3 — Databases
+
+### SQL vs. NoSQL — The Decision Tree
+
+```
+Is your data highly relational?
+(users → orders → items → addresses)
+    │
+    ├─ YES → Do you need ACID transactions?
+    │            │
+    │            ├─ YES → PostgreSQL / MySQL
+    │            └─ NO  → Could be either
+    │
+    └─ NO → Is your schema flexible / evolving fast?
+                │
+                ├─ YES → MongoDB (document store)
+                └─ Is it key-value lookups only?
+                         │
+                         ├─ YES → DynamoDB / Redis
+                         └─ Is it time-series?
+                                  └─ YES → InfluxDB / TimescaleDB
+```
+
+### ACID vs. BASE
+
+| | ACID (SQL) | BASE (NoSQL) |
+|---|---|---|
+| **Stands for** | Atomicity, Consistency, Isolation, Durability | Basically Available, Soft-state, Eventually consistent |
+| **Consistency** | Immediate — reads always see latest writes | Eventual — reads may be milliseconds stale |
+| **Use when** | Money transfers, bookings, inventory | Social feeds, analytics, caches |
+| **Example** | Bank debit + credit must both succeed or both fail | Your Twitter follower count can be off by 1 for a second |
+
+### Indexing — Why Queries Go from Slow to Instant
+
+Without an index, every query does a **full table scan** — reads every row to find matches.
+
+```
+Table: 100 million users
+Query: SELECT * WHERE email = 'dhup@gmail.com'
+
+Without index: reads all 100M rows → seconds
+With index:    jumps directly to row  → milliseconds
+```
+
+**How B-Tree indexes work:**
+
+```
+Index on 'email':
+         [m...]
+        /       \
+   [a-l...]   [n-z...]
+    /    \       /    \
+ [a..] [g..] [n..] [t..]
+   │
+ dhup@gmail.com → row #4,821,033  ✅
+```
+
+**Trade-off:** Indexes speed up reads but slow down writes (the index must be updated on every INSERT/UPDATE). Don't index every column — index only what you query frequently.
+
+> **Rule of thumb:** Index columns that appear in `WHERE`, `ORDER BY`, or `JOIN` clauses.
+
+---
+
+## Chapter 4 — Caching
+
+### The Problem Caching Solves
+
+```
+Without cache:
+User → App → Database (20–30ms disk read) → User
+
+With cache:
+User → App → Redis (under 1ms memory read) → User
+                 ↓ (only on cache miss)
+              Database
+```
+
+**Redis** is an in-memory key-value store. Everything lives in RAM, so reads are ~100x faster than database reads.
+
+### The 4 Caching Strategies
+
+**1. Cache-Aside (Lazy Loading)** — most common
+
+```
+Read:
+  App checks cache
+    Hit  → return data ✅
+    Miss → fetch from DB → store in cache → return data
+
+Write:
+  Write to DB → invalidate cache entry (delete it)
+```
+
+- Good: cache only stores data that's actually requested
+- Risk: first request after a miss is slow (cache cold start)
+
+**2. Read-Through**
+
+```
+App → Cache → (cache fetches from DB automatically on miss)
+```
+
+Cache manages its own population. App never talks to DB directly. Libraries like AWS DAX do this.
+
+**3. Write-Through**
+
+```
+App writes → Cache writes to DB synchronously → confirms
+```
+
+Every write goes through cache first, then to DB. Cache is always consistent with DB.
+- Good: no stale data
+- Bad: every write pays a latency penalty
+
+**4. Write-Behind (Write-Back)**
+
+```
+App writes → Cache (returns immediately) → DB (async, later)
+```
+
+Cache absorbs writes and flushes to DB in batches. Fastest writes, but if cache dies before flush, you lose data.
+
+### Cache Invalidation — The Hardest Part
+
+> *"There are only two hard things in computer science: cache invalidation and naming things."* — Phil Karlton
+
+**TTL (Time-To-Live):** Set an expiry time on every cache entry. When it expires, the next read fetches fresh data from DB.
+
+```
+cache.set("user:1234", userData, ttl=300)  # expires in 5 minutes
+```
+
+- Simple and automatic
+- Acceptable for: social feeds, product listings, weather
+- Not acceptable for: bank balances, privacy settings
+
+**Active Invalidation:** When data changes, explicitly delete the cache entry.
+
+```
+DB.update(user)
+cache.delete("user:1234")  # force next read to get fresh data
+```
+
+### Cache Stampede (Thundering Herd)
+
+```
+Popular cache entry TTL expires
+  → 10,000 concurrent users all get a cache miss simultaneously
+  → All 10,000 requests hit the database at once
+  → Database falls over
+```
+
+**Fix 1 — Probabilistic Early Expiry:** Randomly re-warm the cache slightly before TTL expires.
+
+**Fix 2 — Cache Lock:** First requester gets a lock to rebuild the cache. Others wait or get stale data.
+
+**Eviction Policy (when cache is full):**
+- **LRU (Least Recently Used)** — evict the item not accessed the longest → best for general use
+- **LFU (Least Frequently Used)** — evict the item accessed fewest times → better for Zipf distribution
+
+---
+
+## Chapter 5 — Database Replication
+
+### Primary-Replica Setup (Read Scaling)
+
+```
+         Writes
+           │
+           ▼
+      [Primary DB] ──replication──▶ [Replica 1]
+           │                              │
+           └──────────────────────▶ [Replica 2]
+                                          │
+                                    [Replica 3]
+                                          │
+                                  ┌───────────────┐
+                                  │ DB Load Balancer│
+                                  └───────┬───────┘
+                                          │ Reads
+```
+
+- All **writes** go to the Primary
+- All **reads** go to Replicas
+- Replicas stream changes from Primary via binary log
+
+**Works great for:** Read-heavy apps (social media, e-commerce browsing). For every 1 write, you might have 100 reads. Replicas handle the reads, Primary handles writes.
+
+### Replication Lag & Consistency
+
+Replicas are slightly behind the Primary (usually milliseconds). This is called **eventual consistency**.
+
+**Problem:** User posts a photo → replication hasn't synced yet → user refreshes and doesn't see their own photo.
+
+**Fix — Read-Your-Own-Writes:**
+
+```
+For a user's own recent actions:
+  → Route their reads to the Primary for 1–2 seconds after the write
+  → After sync is confirmed, reads go to Replicas normally
+```
+
+### Failover — What Happens When Primary Dies
+
+```
+Primary dies
+  ↓
+Automatic election among replicas
+  ↓
+One replica becomes the new Primary
+  ↓
+Load balancer updates to point writes at new Primary
+  ↓
+Old primary comes back → becomes a replica
+```
+
+> **Important:** Replicas ≠ Backups. Replicas copy every change instantly — including accidental deletes. Take **daily snapshots** to a separate storage for disaster recovery.
+
+---
+
+## Chapter 6 — Sharding (Horizontal Partitioning)
+
+### When Replication Isn't Enough
+
+Replication scales reads. But if your writes are growing too fast, one Primary can't keep up.
+
+**Sharding** splits your data across multiple databases.
+
+```
+All users in one DB:               Sharded across 4 DBs:
+┌──────────────┐               ┌────────┐ ┌────────┐
+│  ALL 1B users│        →      │Shard A │ │Shard B │  (users 0–249M)
+└──────────────┘               │0–249M  │ │250–499M│
+                                └────────┘ └────────┘
+                                ┌────────┐ ┌────────┐
+                                │Shard C │ │Shard D │
+                                │500–749M│ │750B–1B │
+                                └────────┘ └────────┘
+```
+
+### Shard Key Selection — This is Critical
+
+The shard key determines which machine a piece of data lives on. A bad choice breaks your system.
+
+| Shard Key | Problem |
+|---|---|
+| `user_id` (range-based) | Celebrity accounts on one shard → hot shard problem |
+| `created_at` | All new writes go to the "newest" shard → hotspot |
+| `hash(user_id) % N` | Even distribution, but adding new shards means reshuffling everything |
+| `Consistent hashing` | Best: adding/removing shards only moves ~1/N of data |
+
+### Consistent Hashing — The Smart Way
+
+```
+Hash ring (0 to 2³²):
+
+         0
+       /    \
+  Server D  Server A
+      |          |
+  Server C  Server B
+       \    /
+        2³²
+
+When a user request comes in:
+  hash(user_id) → position on ring
+  Walk clockwise → first server you hit handles that user
+
+Adding a new server:
+  Only the users between the new server and its predecessor move
+  ~1/N of data moves (instead of everything)
+```
+
+### Cross-Shard Queries — The Pain Point
+
+```
+"Get all posts by friends of user X"
+
+User X's friends are spread across Shard A, C, D
+Posts are spread across Shard B, C, D
+
+→ Must query multiple shards and merge results in application layer
+→ No SQL JOINs across shards
+→ Aggregates (COUNT, SUM) must be done per-shard and combined
+```
+
+This is why you denormalize data in sharded systems — store copies of data together to avoid cross-shard queries.
+
+> **Interview Tip:** Don't introduce sharding immediately. Say "I'll add replication first since we're read-heavy, and introduce sharding only if write throughput becomes the bottleneck."
+
+---
+
+## Chapter 7 — Message Queues
+
+### The Problem: Tight Coupling
+
+```
+User uploads video
+  → App calls thumbnail service (waits 3s)
+  → App calls notification service (waits 0.5s)
+  → App calls analytics service (waits 1s)
+  → Total: 4.5s before user gets a response ❌
+```
+
+### The Solution: Async with a Queue
+
+```
+User uploads video
+  → App saves video → publishes event to Queue → returns "Upload successful" (instant) ✅
+
+Queue delivers to:
+  → Thumbnail service (processes async, 3s)
+  → Notification service (async, 0.5s)
+  → Analytics service (async, 1s)
+```
+
+User sees success immediately. Work happens in the background.
+
+### How Kafka Works (5 Steps)
+
+Kafka is a **distributed log** — not a traditional queue. Messages are persisted and replayable.
+
+```
+Step 1: Producer writes message to a Topic
+Step 2: Kafka partitions the topic across brokers (servers)
+Step 3: Each partition is replicated to N brokers for fault tolerance
+Step 4: Consumer Groups read from partitions (each partition → one consumer)
+Step 5: Consumers commit offsets — "I've read up to message #1042"
+```
+
+```
+Topic: "video-uploaded"
+
+Partition 0: [msg1] [msg2] [msg5] [msg8] ──▶ Consumer Group A (Transcoding)
+Partition 1: [msg3] [msg6] [msg9] ──────────▶ Consumer Group A
+Partition 2: [msg4] [msg7] [msg10] ─────────▶ Consumer Group B (Thumbnails)
+```
+
+### Kafka vs. RabbitMQ
+
+| | Kafka | RabbitMQ |
+|---|---|---|
+| **Model** | Distributed log (pull-based) | Message broker (push-based) |
+| **Replay** | Yes — consumers can re-read old messages | No — message is gone after ACK |
+| **Throughput** | Millions of messages/second | Hundreds of thousands/second |
+| **Use when** | Event streaming, audit logs, data pipelines | Task queues, RPC, routing |
+| **Real use** | LinkedIn feeds, Uber trip events, Airbnb bookings | Order processing, email queues |
+
+> **Interview Tip:** Use Kafka when you need to replay events (e.g., rebuilding a search index from history). Use RabbitMQ for simple task distribution.
+
+---
+
+## Chapter 8 — CDN & Object Storage
+
+### CDN — Content Delivery Network
+
+**Problem:** Your servers are in Mumbai. A user in New York downloads a 5 MB image. Every request travels 14,000 km round trip → high latency.
+
+```
+Without CDN:
+User (New York) ──────────────────────▶ Server (Mumbai)
+                14,000 km round trip
+
+With CDN:
+User (New York) ──▶ CDN Edge (Virginia) ──▶ (only on first miss) Server (Mumbai)
+                    200 km round trip
+```
+
+**How CDN works:**
+
+```
+Step 1: User requests image.jpg
+Step 2: DNS routes request to nearest CDN edge node
+Step 3: Edge has image? → Serve immediately (cache hit)
+Step 4: No image? → Fetch from origin server → cache it → serve user
+Step 5: All future users near that edge get it instantly
+```
+
+CDN nodes exist in 100+ cities worldwide (Cloudflare has 300+ cities).
+
+**What to put on CDN:**
+- Static assets: images, videos, CSS, JS bundles
+- Dynamic content: API responses with short TTLs (product prices that change hourly)
+
+**What NOT to put on CDN:**
+- User-specific data (your inbox, account page)
+- Real-time data (stock prices, live scores)
+
+### Object Storage (S3)
+
+For user-generated content (photos, videos, documents) — don't store on your app server.
+
+```
+User uploads photo
+  → App receives file
+  → App uploads to S3
+  → App stores S3 URL in database
+  → Future requests: redirect client to S3 URL (or CDN URL in front of S3)
+```
+
+| Storage Type | What it is | Use case |
+|---|---|---|
+| **Object Storage (S3)** | Files stored by key, accessed via HTTP | Photos, videos, backups, logs |
+| **Block Storage (EBS)** | Raw disk attached to one server | Database files, OS disk |
+| **File Storage (EFS)** | Shared filesystem mounted by multiple servers | Config files shared across instances |
+
+---
+
+## Chapter 9 — Rate Limiting
+
+### Why Rate Limiting Matters
+
+Without rate limiting:
+- One malicious user sends 1 million requests/second → takes down your API
+- A buggy client retries in an infinite loop → same result
+- Expensive endpoints (ML inference, DB aggregations) get hammered
+
+### Token Bucket Algorithm (Used by AWS, Stripe)
+
+```
+Bucket holds tokens (e.g., capacity = 10)
+Tokens refill at fixed rate (e.g., 2 tokens/second)
+
+Request comes in:
+  Bucket has tokens? → Take 1 token → allow request
+  Bucket empty?      → Reject request (HTTP 429 Too Many Requests)
+```
+
+```
+t=0: bucket = [10 tokens] → 10 requests burst allowed
+t=1: refill  = [2 tokens]  → user used 10, now has 2
+t=2: refill  = [4 tokens]
+...
+```
+
+**Allows short bursts** (good for real users who occasionally spike).
+
+### Leaky Bucket Algorithm
+
+```
+Requests enter a queue (the bucket)
+Queue drains at a fixed rate (e.g., 100 req/second)
+
+Queue full? → drop request (or return 429)
+```
+
+Produces a **smooth, constant output rate**. Good for protecting downstream services.
+
+### Where to Implement Rate Limiting
+
+```
+Client → API Gateway (rate limit per user/IP)
+            → Service A (rate limit per endpoint)
+                → DB (connection pool limits write rate)
+```
+
+Store counters in Redis with TTL:
+
+```
+key: "rate:user:1234:2026-08-02-15:30"
+value: 47  (requests in this minute window)
+TTL: 60s
+```
+
+---
+
+## Chapter 10 — CAP Theorem
+
+### The Theorem
+
+In a distributed system, you can only guarantee 2 of 3:
+
+```
+        Consistency
+           /\
+          /  \
+         /    \
+        /      \
+  Availability──Partition Tolerance
+```
+
+- **Consistency (C):** Every read returns the most recent write (or an error)
+- **Availability (A):** Every request gets a response (even if it might be stale)
+- **Partition Tolerance (P):** System continues working even if network splits it in two
+
+**The catch:** Network partitions *will* happen in any real distributed system. So you're really choosing between **CP** or **AP**.
+
+| System | Choice | Why |
+|---|---|---|
+| **PostgreSQL** (single node) | CA (not distributed) | No partition to tolerate |
+| **HBase, Zookeeper** | CP | Returns error rather than stale data |
+| **Cassandra, DynamoDB** | AP | Returns stale data rather than failing |
+| **MongoDB** (default) | CP | Primary must be reachable for writes |
+
+> **Real example:** During a network partition in a banking system (CP), your transfer may fail with an error. During the same partition in a social network (AP), you might see yesterday's follower count — but the app stays up.
+
+### PACELC — The More Accurate Model
+
+CAP only considers partition scenarios. PACELC adds the normal case:
+
+```
+If Partition: choose Availability or Consistency
+Else (normal operation): choose Latency or Consistency
+```
+
+Most systems are **EL** (prefer low latency over perfect consistency during normal operation).
+
+---
+
+## Chapter 11 — System Design Patterns Cheat Sheet
+
+### Stateless Servers
+
+```
+❌ Stateful (bad):
+  User session in Server 1's memory
+  User's next request hits Server 2 → logged out!
+
+✅ Stateless (correct):
+  Session token → Redis
+  All servers check Redis → always works
+```
+
+### Fan-Out on Write vs. Fan-Out on Read (News Feed)
+
+**Fan-Out on Write:** When Alice posts, pre-write to all her 10M followers' feed tables immediately.
+
+```
+Alice posts
+  → Queue
+    → Worker pushes to 10M feed tables (async)
+
+Read: User's feed is pre-built → instant read ✅
+Write: 10M inserts per post ❌ (celebrity problem)
+```
+
+**Fan-Out on Read:** Store Alice's posts in one place. At read time, merge all following users' posts.
+
+```
+Alice posts → stored in one place
+
+User reads feed:
+  → Fetch posts from 1000 people they follow
+  → Merge and sort by time
+  → Return
+
+Read: slow (merge 1000 queries) ❌
+Write: instant ✅
+```
+
+**Hybrid (Twitter's approach):** Fan-out on write for regular users. Fan-out on read for celebrities (50K+ followers) to avoid the write explosion.
+
+### Consistent Hashing (Revisited)
+
+Use any time you're distributing load and need to add/remove nodes without remapping everything:
+- Distribute cache keys across Redis nodes
+- Route requests to servers in a cluster
+- Assign data partitions to storage nodes
+
+---
+
+## Case Study — Design a URL Shortener (bit.ly)
+
+### Requirements
+
+- Shorten a URL → get a 6-character code (e.g., `bit.ly/aX3kP1`)
+- Redirect short URL → original URL (must be fast, under 10ms)
+- Scale: 100M URLs created/day, 10B redirects/day
+
+### Estimation
+
+```
+100M creates/day ÷ 86,400s = ~1,200 writes/second
+10B redirects/day ÷ 86,400s = ~116,000 reads/second
+
+Read:Write ratio = ~100:1 (read-heavy ✅ → cache aggressively)
+
+Storage: 100M URLs/day × 500 bytes × 365 days × 10 years = ~182 TB
+```
+
+### High-Level Architecture
+
+```
+User → [CDN / Cache] → [API Servers] → [Redis Cache] → [DB]
+           │                                  │
+       (cached)                          (cache miss)
+```
+
+### URL Shortening Service
+
+**How to generate a 6-character code:**
+
+```
+Option 1 — Hash + Truncate:
+  MD5(longUrl) → 128-bit hash
+  Take first 7 characters → collision risk
+
+Option 2 — Base62 of auto-increment ID (recommended):
+  DB auto-increment: ID = 2,009,215,674
+  Convert to base62: 0-9, a-z, A-Z → "mCD4Wr"
+  6 chars of base62 = 62⁶ = 56 billion unique URLs ✅
+```
+
+### Database Schema
+
+```sql
+urls table:
+  id          BIGINT PRIMARY KEY AUTO_INCREMENT
+  short_code  VARCHAR(7) UNIQUE INDEX
+  long_url    TEXT
+  user_id     BIGINT
+  created_at  TIMESTAMP
+  expires_at  TIMESTAMP
+  click_count BIGINT DEFAULT 0
+```
+
+### Redirect Flow
+
+```
+User visits bit.ly/mCD4Wr
+
+Step 1: Check Redis cache → "mCD4Wr" → found?
+  Hit:  Return 301/302 redirect to long URL (under 1ms)
+  Miss: Query DB → cache the result → return redirect
+
+Step 2: Log the click (async, via Kafka → analytics DB)
+```
+
+**301 vs 302 redirect:**
+- **301 Permanent:** Browser caches it forever → no future requests to your server → saves cost, but can't track clicks
+- **302 Temporary:** Browser asks your server every time → you see every redirect → use this if analytics matter
+
+---
+
+## Case Study — Design a News Feed (Instagram / Twitter)
+
+### Requirements
+
+- User sees posts from people they follow, sorted by time (or ranked)
+- Post: text + optional image/video
+- Scale: 100M DAU, 10M posts/day, 1B feed reads/day
+
+### The Core Challenge: Fanout
+
+When Alice (10M followers) posts:
+
+```
+Option A — Fanout on Write:
+  → Write post to 10M followers' feed tables instantly
+  → Read: O(1) → just read user's pre-built feed table
+  → Problem: 10M writes per post, celebrity = bottleneck
+
+Option B — Fanout on Read:
+  → Store Alice's post in one place
+  → Read: merge posts from all N followees at read time
+  → Problem: Merging 500 people's posts at read time = slow
+```
+
+### Hybrid Architecture (How Twitter Does It)
+
+```
+Regular user posts (< 50K followers):
+  → Kafka → Workers push to all followers' feed tables (fast enough)
+
+Celebrity posts (> 50K followers):
+  → Kafka → Stored in celebrity's own feed table only
+
+User reads feed:
+  → Fetch pre-built feed table (regular followees)
+  → For celebrities they follow: fetch fresh from celebrity's table
+  → Merge the two sets in app layer
+  → Sort by time/rank
+  → Return top 20
+```
+
+### Storage Layout
+
+```
+Post Table (write once, read many):
+  post_id, user_id, content, image_url, created_at
+
+Feed Table (per-user inbox):
+  user_id, post_id, created_at
+
+Followers Table:
+  follower_id, followee_id (with index on both columns)
+```
+
+### Full Architecture Diagram
+
+```
+          [CDN] ←── images/videos
+            ▲
+[Client] ──▶ [API Gateway] ──▶ [Feed Service] ──▶ [Redis Feed Cache]
+                                    │
+                               [Kafka Queue]
+                                    │
+                          [Fanout Worker Fleet]
+                                    │
+                     ┌──────────────┴──────────────┐
+                     ▼                             ▼
+              [Feed DB (Cassandra)]      [Post DB (PostgreSQL)]
+```
+
+---
+
+## Quick-Reference Cheat Sheet
+
+| Scenario | Solution |
+|---|---|
+| Too many reads | Add Redis cache + read replicas |
+| Too many writes | Shard the database |
+| Services too coupled | Add a message queue (Kafka) |
+| Users globally distributed | Add CDN |
+| Single server dying = downtime | Horizontal scaling + load balancer |
+| Same user hitting different servers | Stateless servers + Redis for sessions |
+| Database getting too big | Shard on user_id with consistent hashing |
+| Aggregate operations slow | Precompute and cache (e.g., follower counts) |
+| Need to handle spikes | Token bucket rate limiting + auto-scaling |
+| Can't afford downtime | Multi-region deployment + failover |
+
+> **Final Interview Tip:** Always drive the conversation. Say "I'll start simple with one server and a database, identify the bottleneck, then add each component to solve it." Interviewers want to see your thinking process, not a perfect diagram.

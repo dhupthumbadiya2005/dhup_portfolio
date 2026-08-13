@@ -1,0 +1,224 @@
+---
+title: "Recursion & Backtracking — Essentials Only (Python)"
+publishedAt: "2026-07-24"
+author: "Dhup Thumbadiya"
+summary: "Core recursion and backtracking patterns distilled to essentials, with Python implementations and mental models for interview success."
+category: "DSA"
+---
+
+## When to think "Backtracking"
+
+Trigger words/situations:
+
+- "Generate all possible..." (subsets, permutations, combinations)
+- "Find all ways to..."
+- A decision is made at each step, and you may need to **undo** it and try another option
+- Problem naturally forms a **decision tree** — include/exclude, pick/skip
+
+**It's just recursion + undoing the last choice.** That's the entire concept — don't overthink it.
+
+---
+
+## The One Template You Need
+
+```python
+def backtrack(path, choices, result):
+    if is_solution(path):
+        result.append(path[:])   # copy! path is mutated later
+        return
+
+    for choice in choices:
+        if not is_valid(choice, path):
+            continue
+        path.append(choice)          # 1. choose
+        backtrack(path, choices, result)   # 2. explore
+        path.pop()                   # 3. un-choose (backtrack)
+```
+
+**3 steps, always: choose → explore → un-choose.** Every problem below is this template with small tweaks to the loop and the stopping condition.
+
+---
+
+## Most Asked Problems (in order of priority)
+
+**1. Subsets (Medium — the cleanest example of the template)**
+
+```python
+def subsets(nums):
+    result = []
+    path = []
+
+    def backtrack(start):
+        result.append(path[:])
+        for i in range(start, len(nums)):
+            path.append(nums[i])
+            backtrack(i + 1)     # move forward, no reuse
+            path.pop()
+
+    backtrack(0)
+    return result
+```
+
+**Key insight:** every node in the recursion tree is a valid subset — that's why `result.append` happens unconditionally at the top, not just at leaves.
+
+**2. d (Medium — very common)**
+
+```python
+def permute(nums):
+    result = []
+    path = []
+    used = [False] * len(nums)
+
+    def backtrack():
+        if len(path) == len(nums):
+            result.append(path[:])
+            return
+        for i in range(len(nums)):
+            if used[i]:
+                continue
+            used[i] = True
+            path.append(nums[i])
+            backtrack()
+            path.pop()
+            used[i] = False
+
+    backtrack()
+    return result
+```
+
+**Key insight:** unlike Subsets, order matters here, so you loop from the **start** every time (not `start` index) but skip already-used elements with a `used[]` array.
+
+**3. Combination Sum (Medium — very common)**
+
+```python
+def combinationSum(candidates, target):
+    result = []
+    path = []
+
+    def backtrack(start, remaining):
+        if remaining == 0:
+            result.append(path[:])
+            return
+        if remaining < 0:
+            return
+        for i in range(start, len(candidates)):
+            path.append(candidates[i])
+            backtrack(i, remaining - candidates[i])   # i, not i+1: reuse allowed
+            path.pop()
+
+    backtrack(0, target)
+    return result
+```
+
+**Key insight:** pass `i` (not `i+1`) in the recursive call because the **same element can be reused**. Compare with Subsets/Permutations where reuse isn't allowed.
+
+**4. Subsets II / Combination Sum II (Medium — handling duplicates in input)**
+
+```python
+def subsetsWithDup(nums):
+    nums.sort()   # sort first so duplicates sit next to each other
+    result = []
+    path = []
+
+    def backtrack(start):
+        result.append(path[:])
+        for i in range(start, len(nums)):
+            if i > start and nums[i] == nums[i - 1]:
+                continue   # skip duplicate at same recursion depth
+            path.append(nums[i])
+            backtrack(i + 1)
+            path.pop()
+
+    backtrack(0)
+    return result
+```
+
+**Key insight (the duplicate-skipping trick — used constantly):** sort first, then `if i > start and nums[i] == nums[i-1]: skip`. This is the standard fix whenever "input may contain duplicates" appears — you already used a similar idea in 3Sum.
+
+**5. Letter Combinations of a Phone Number (Medium — common, simple mapping + backtrack)**
+
+```python
+def letterCombinations(digits):
+    if not digits:
+        return []
+    mapping = {
+        '2': 'abc', '3': 'def', '4': 'ghi', '5': 'jkl',
+        '6': 'mno', '7': 'pqrs', '8': 'tuv', '9': 'wxyz'
+    }
+    result = []
+    path = []
+
+    def backtrack(index):
+        if index == len(digits):
+            result.append(''.join(path))
+            return
+        for ch in mapping[digits[index]]:
+            path.append(ch)
+            backtrack(index + 1)
+            path.pop()
+
+    backtrack(0)
+    return result
+```
+
+**6. Word Search (Medium — grid backtracking, common in interviews)**
+
+```python
+def exist(board, word):
+    rows, cols = len(board), len(board[0])
+
+    def backtrack(r, c, i):
+        if i == len(word):
+            return True
+        if r < 0 or r >= rows or c < 0 or c >= cols or board[r][c] != word[i]:
+            return False
+
+        temp = board[r][c]
+        board[r][c] = '#'   # mark visited
+        found = (backtrack(r + 1, c, i + 1) or backtrack(r - 1, c, i + 1) or
+                 backtrack(r, c + 1, i + 1) or backtrack(r, c - 1, i + 1))
+        board[r][c] = temp   # un-mark (backtrack!)
+
+        return found
+
+    for r in range(rows):
+        for c in range(cols):
+            if backtrack(r, c, 0):
+                return True
+    return False
+```
+
+**Key insight:** "mark visited, explore all 4 directions, un-mark" is the choose/explore/un-choose template applied to a grid.
+
+---
+
+## Quick Recall Cheat-Sheet
+
+|Problem type|Loop starts from|Reuse same element?|Extra trick|
+|---|---|---|---|
+|Subsets|`start` index|No|append at every node, not just leaves|
+|Permutations|index 0 every time|No|`used[]` array instead of start index|
+|Combination Sum|`start` index|**Yes**|pass `i` not `i+1` in recursive call|
+|Subsets II / Comb Sum II|`start` index|No|sort + skip `nums[i] == nums[i-1]` at same depth|
+|Word Search (grid)|current cell|No|mark/unmark cell as visited|
+
+**One-line decision rule:**
+
+> Order doesn't matter, no reuse → Subsets template (loop from `start`). Order matters → Permutations template (`used[]` array, loop from 0). Reuse of same element allowed → Combination Sum template (loop from `start`, recurse with same `i`). Input has duplicates and you must avoid duplicate outputs → sort + skip-same-at-same-depth trick.
+
+---
+
+## Practice list (6 problems — enough for this level, don't over-invest here)
+
+1. Subsets
+2. Permutations
+3. Combination Sum
+4. Subsets II
+5. Letter Combinations of a Phone Number
+6. Word Search
+
+**Skip for now (low ROI at 10-12 LPA):** N-Queens, Sudoku Solver, Palindrome Partitioning (only add these back if you have spare time after finishing all other patterns).
+
+**Rule of thumb before moving on:** you should be able to write the Subsets and Permutations templates from memory in under 3 minutes each — everything else in this pattern is a small tweak to one of those two.
+
+

@@ -1,0 +1,348 @@
+---
+title: "Two Pointers — Complete Pattern Notes (Python)"
+publishedAt: "2026-07-26"
+author: "Dhup Thumbadiya"
+summary: "All two-pointer techniques — opposite ends, fast-slow pointers, and sliding window variants — with Python examples and interview patterns."
+category: "DSA"
+---
+
+## When to think "Two Pointers"
+
+Trigger words/situations:
+
+- Array or string is **sorted** (or can be sorted)
+- Asked to find a **pair/triplet** matching a condition
+- Asked about **palindrome**
+- Asked to do something **in-place** (no extra array)
+- Merging two sorted structures
+- "Container", "trapping water", "closest sum" type problems
+
+There are **4 sub-patterns**. Learn to recognize which one applies — that's 90% of the battle.
+
+---
+
+## SUB-PATTERN A: Opposite Direction (Left ↔ Right converge)
+
+**Recognize:** sorted array + pair sum / comparing from both ends / palindrome check.
+
+**Template:**
+
+```python
+def two_pointer_opposite(arr, target):
+    left, right = 0, len(arr) - 1
+    while left < right:
+        curr = arr[left] + arr[right]
+        if curr == target:
+            return [left, right]
+        elif curr < target:
+            left += 1      # need bigger sum
+        else:
+            right -= 1     # need smaller sum
+    return [-1, -1]
+```
+
+### Most asked problems
+
+**1. Two Sum II – Input Array Is Sorted (Easy)**
+
+```python
+def twoSum(numbers, target):
+    l, r = 0, len(numbers) - 1
+    while l < r:
+        s = numbers[l] + numbers[r]
+        if s == target:
+            return [l + 1, r + 1]
+        elif s < target:
+            l += 1
+        else:
+            r -= 1
+    return []
+```
+
+**2. Valid Palindrome (Easy)**
+
+```python
+def isPalindrome(s):
+    s = [c.lower() for c in s if c.isalnum()]
+    l, r = 0, len(s) - 1
+    while l < r:
+        if s[l] != s[r]:
+            return False
+        l += 1
+        r -= 1
+    return True
+```
+
+**3. Container With Most Water (Medium)**
+
+```python
+def maxArea(height):
+    l, r = 0, len(height) - 1
+    best = 0
+    while l < r:
+        area = (r - l) * min(height[l], height[r])
+        best = max(best, area)
+        if height[l] < height[r]:
+            l += 1
+        else:
+            r -= 1
+    return best
+```
+
+**Key insight:** always move the pointer with the **smaller height** — moving the taller one can never increase area.
+
+**4. Trapping Rain Water (Medium/Hard but very common)**
+
+```python
+def trap(height):
+    l, r = 0, len(height) - 1
+    left_max, right_max = 0, 0
+    water = 0
+    while l < r:
+        if height[l] < height[r]:
+            left_max = max(left_max, height[l])
+            water += left_max - height[l]
+            l += 1
+        else:
+            right_max = max(right_max, height[r])
+            water += right_max - height[r]
+            r -= 1
+    return water
+```
+
+**5. Reverse String (Easy)** — in-place swap, l/r pointers till they cross.
+
+**6. Sort Colors / Dutch National Flag (Medium)** — 3-pointer variant
+
+```python
+def sortColors(nums):
+    low, mid, high = 0, 0, len(nums) - 1
+    while mid <= high:
+        if nums[mid] == 0:
+            nums[low], nums[mid] = nums[mid], nums[low] #remember for SWAPPING
+            low += 1
+            mid += 1
+        elif nums[mid] == 1:
+            mid += 1
+        else:
+            nums[mid], nums[high] = nums[high], nums[mid]
+            high -= 1
+```
+
+---
+
+## SUB-PATTERN B: Same Direction (Slow-Fast, in-place overwrite)
+
+**Recognize:** "remove/modify in-place", "return new length", no extra space allowed.
+
+**Template:**
+
+```python
+def same_direction(arr):
+    slow = 0
+    for fast in range(len(arr)):
+        if some_condition(arr[fast]):
+            arr[slow] = arr[fast]
+            slow += 1
+    return slow  # new length
+```
+
+### Most asked problems
+
+**1. Remove Duplicates from Sorted Array (Easy)**
+
+```python
+def removeDuplicates(nums):
+    if not nums:
+        return 0
+    slow = 1
+    for fast in range(1, len(nums)):
+        if nums[fast] != nums[slow - 1]:
+            nums[slow] = nums[fast]
+            slow += 1
+    return slow
+```
+
+**2. Move Zeroes (Easy)**
+
+```python
+def moveZeroes(nums):
+    slow = 0
+    for fast in range(len(nums)):
+        if nums[fast] != 0:
+            nums[slow], nums[fast] = nums[fast], nums[slow]
+            slow += 1
+```
+
+**3. Remove Element (Easy)** — same template, condition = `nums[fast] != val`.
+
+---
+
+## SUB-PATTERN C: Two Pointers + Sorting (Multi-sum problems)
+
+**Recognize:** "find all triplets/quadruplets that sum to X" — this is the #1 most-asked medium pattern (3Sum is a top-10 interview question everywhere).
+
+**Core idea:** Sort the array. Fix one (or two) elements with a loop, then use opposite-direction two pointers on the rest. Skip duplicates carefully.
+
+**1. 3Sum (Medium — extremely common)**
+
+```python
+def threeSum(nums):
+    nums.sort()
+    res = []
+    n = len(nums)
+    for i in range(n - 2):
+        if i > 0 and nums[i] == nums[i - 1]:
+            continue  # skip duplicate anchor
+        if nums[i] > 0:
+            break  # can't sum to 0 anymore
+        l, r = i + 1, n - 1
+        while l < r:
+            s = nums[i] + nums[l] + nums[r]
+            if s == 0:
+                res.append([nums[i], nums[l], nums[r]])
+                l += 1
+                r -= 1
+                while l < r and nums[l] == nums[l - 1]:
+                    l += 1
+                while l < r and nums[r] == nums[r + 1]:
+                    r -= 1
+            elif s < 0:
+                l += 1
+            else:
+                r -= 1
+    return res
+```
+
+**2. 3Sum Closest (Medium)** — same skeleton, track `min(abs(diff))` instead of collecting exact matches.
+
+**3. 4Sum (Medium)** — same idea, add one more outer loop (two fixed indices + two-pointer on rest). O(n³).
+
+---
+
+## SUB-PATTERN D: Merge Two Sorted Structures
+
+**Recognize:** two sorted arrays/lists need to combine into one sorted result.
+
+**1. Merge Sorted Array (Easy — fill from the back to avoid overwrite)**
+
+```python
+def merge(nums1, m, nums2, n):
+    i, j, k = m - 1, n - 1, m + n - 1
+    while j >= 0:
+        if i >= 0 and nums1[i] > nums2[j]:
+            nums1[k] = nums1[i]
+            i -= 1
+        else:
+            nums1[k] = nums2[j]
+            j -= 1
+        k -= 1
+```
+
+**Key trick:** fill from the **end**, so you never overwrite unread values in nums1.
+
+**2. Intersection of Two Arrays II (Easy)**
+
+```python
+def intersect(nums1, nums2):
+    nums1.sort()
+    nums2.sort()
+    i = j = 0
+    res = []
+    while i < len(nums1) and j < len(nums2):
+        if nums1[i] == nums2[j]:
+            res.append(nums1[i])
+            i += 1
+            j += 1
+        elif nums1[i] < nums2[j]:
+            i += 1
+        else:
+            j += 1
+    return res
+```
+
+---
+
+## Quick Recall Cheat-Sheet
+
+|Sub-pattern|Trigger phrase|Pointer movement|
+|---|---|---|
+|Opposite direction|sorted + pair sum / palindrome|l++ if sum small, r-- if sum big|
+|Same direction|in-place, remove/modify, return length|slow tracks write position, fast scans|
+|Sort + multi-pointer|triplet/quadruplet sum|sort first, fix outer, two-pointer inner|
+|Merge|two sorted → one sorted|compare fronts (or backs), advance smaller|
+
+---
+
+## Practice list (do in this order — ~18 problems total)
+
+1. Two Sum II
+2. Valid Palindrome
+3. Reverse String
+4. Move Zeroes
+5. Remove Duplicates from Sorted Array
+6. Remove Element
+7. Container With Most Water
+8. Sort Colors
+9. Merge Sorted Array
+10. Intersection of Two Arrays II
+11. 3Sum
+12. 3Sum Closest
+13. 4Sum
+14. Trapping Rain Water
+15. Squares of a Sorted Array (Easy — bonus, opposite direction)
+16. Backspace String Compare (Easy — bonus, opposite direction on strings).   -> we can solve it with stack but two pointer is optimal approach 
+17. Valid Palindrome II (Medium — one deletion allowed)
+18. Boats to Save People (Medium — greedy + two pointer).  ---> not optimized using sort we have done
+
+**Rule of thumb before moving to Sliding Window pattern next:** you should be able to look at a new problem and say out loud "this is opposite-direction / same-direction / sort+multi-pointer / merge" within 30-60 seconds, before writing any code.
+
+solution for 17 : 
+
+```python
+class Solution(object):
+    def validPalindrome(self, s):
+
+        def isPalindrome(left, right):
+            while left < right:
+                if s[left] != s[right]:
+                    return False
+                left += 1
+                right -= 1
+            return True
+
+        left, right = 0, len(s) - 1
+
+        while left < right:
+            if s[left] == s[right]:
+                left += 1
+                right -= 1
+            else:
+                return (
+                    isPalindrome(left + 1, right) or
+                    isPalindrome(left, right - 1)
+                )
+
+        return True
+```
+
+
+solution for 15 : 
+
+```python
+class Solution(object):
+    def sortedSquares(self, nums):
+        l, r = 0, len(nums) - 1
+        res = []
+
+        while l <= r:
+            if nums[l] ** 2 > nums[r] ** 2:
+                res.append(nums[l] ** 2)
+                l += 1
+            else:
+                res.append(nums[r] ** 2)
+                r -= 1
+
+        res.reverse()
+        return res
+```
