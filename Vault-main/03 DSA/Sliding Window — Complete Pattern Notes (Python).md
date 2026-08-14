@@ -1,0 +1,284 @@
+## When to think "Sliding Window"
+
+Trigger words/situations:
+
+- **Contiguous** subarray or substring (not "any subset")
+- "Longest / shortest / max / min ... substring/subarray"
+- "At most K", "exactly K", "no more than K distinct"
+- Fixed-size window: "subarray of size k"
+- Involves checking a **running condition** (sum, count, distinct chars) as window grows/shrinks
+
+If the word "contiguous" or "substring/subarray" is missing and it's about picking any elements — it's **not** sliding window (probably DP or backtracking).
+
+There are **2 sub-patterns**. Learn to tell them apart instantly.
+
+---
+
+## SUB-PATTERN A: Fixed-Size Window
+
+**Recognize:** window size `k` is given directly in the problem.
+
+**Template:**
+
+python
+
+```python
+def fixed_window(arr, k):
+    window_sum = sum(arr[:k])
+    best = window_sum
+    for i in range(k, len(arr)):
+        window_sum += arr[i] - arr[i - k]   # add new, remove old
+        best = max(best, window_sum)
+    return best
+```
+
+### Most asked problems
+
+**1. Maximum Sum Subarray of Size K (Easy — classic starter)**
+
+python
+
+```python
+def maxSumSubarray(arr, k):
+    window_sum = sum(arr[:k])
+    best = window_sum
+    for i in range(k, len(arr)):
+        window_sum += arr[i] - arr[i - k]
+        best = max(best, window_sum)
+    return best
+```
+
+**2. Maximum Average Subarray I (Easy)** — same as above, divide by k at the end.
+
+**3. Sliding Window Maximum (Hard but very common — uses deque, not just sum)**
+
+python
+
+```python
+from collections import deque
+
+def maxSlidingWindow(nums, k):
+    dq = deque()   # stores indices, values in decreasing order
+    res = []
+    for i, n in enumerate(nums):
+        while dq and nums[dq[-1]] < n:
+            dq.pop()
+        dq.append(i)
+        if dq[0] <= i - k:
+            dq.popleft()
+        if i >= k - 1:
+            res.append(nums[dq[0]])
+    return res
+```
+
+**Key insight:** maintain a **monotonic decreasing deque** of indices — front always holds the current window's max.
+
+---
+
+## SUB-PATTERN B: Variable-Size Window (Expand/Shrink)
+
+**Recognize:** no fixed size given — you grow the window until it breaks a condition, then shrink from the left. This is the pattern that shows up **most often** in interviews.
+
+**Template:**
+
+python
+
+```python
+def variable_window(arr, condition_fn):
+    left = 0
+    best = 0  # or float('inf') for "shortest"
+    window_state = {}  # sum, count, set, etc. depending on problem
+
+    for right in range(len(arr)):
+        # 1. expand: add arr[right] into window_state
+        update_state_add(window_state, arr[right])
+
+        # 2. shrink while window is invalid
+        while not condition_fn(window_state):
+            update_state_remove(window_state, arr[left])
+            left += 1
+
+        # 3. record answer using current valid window
+        best = max(best, right - left + 1)
+
+    return best
+```
+
+### Most asked problems
+
+**1. Longest Substring Without Repeating Characters (Medium — top interview question)**
+
+python
+
+```python
+def lengthOfLongestSubstring(s):
+    seen = set()
+    left = 0
+    best = 0
+    for right in range(len(s)):
+        while s[right] in seen:
+            seen.remove(s[left])
+            left += 1
+        seen.add(s[right])
+        best = max(best, right - left + 1)
+    return best
+```
+
+**2. Longest Substring with At Most K Distinct Characters (Medium)**
+https://www.geeksforgeeks.org/problems/longest-k-unique-characters-substring0853/1
+
+python
+
+```python
+from collections import defaultdict
+
+def lengthOfLongestSubstringKDistinct(s, k):
+    count = defaultdict(int)
+    left = 0
+    best = 0
+    for right in range(len(s)):
+        count[s[right]] += 1
+        while len(count) > k:
+            count[s[left]] -= 1
+            if count[s[left]] == 0:
+                del count[s[left]]
+            left += 1
+        best = max(best, right - left + 1)
+    return best
+```
+
+**3. Minimum Size Subarray Sum (Medium — "shortest" variant)**
+
+python
+
+```python
+def minSubArrayLen(target, nums):
+    left = 0
+    total = 0
+    best = float('inf')
+    for right in range(len(nums)):
+        total += nums[right]
+        while total >= target:
+            best = min(best, right - left + 1)
+            total -= nums[left]
+            left += 1
+    return best if best != float('inf') else 0
+```
+
+**Key insight:** "shortest" problems shrink **inside** the valid zone (record answer while shrinking), unlike "longest" problems which shrink only when invalid.
+
+**4. Minimum Window Substring (Hard but extremely common — master this one)**
+https://leetcode.com/problems/minimum-window-substring/
+
+python
+
+```python
+from collections import Counter
+
+def minWindow(s, t):
+    if not t or not s:
+        return ""
+    need = Counter(t)
+    missing = len(t)
+    left = 0
+    best_left, best_len = 0, float('inf')
+
+    for right, ch in enumerate(s):
+        if need[ch] > 0:
+            missing -= 1
+        need[ch] -= 1
+
+        while missing == 0:
+            if right - left + 1 < best_len:
+                best_left, best_len = left, right - left + 1
+            need[s[left]] += 1
+            if need[s[left]] > 0:
+                missing += 1
+            left += 1
+
+    return "" if best_len == float('inf') else s[best_left:best_left + best_len]
+```
+
+**5. Fruit Into Baskets (Medium — same as "at most 2 distinct")** Identical structure to problem 2 with k=2.
+
+**6. Longest Repeating Character Replacement (Medium)**
+https://leetcode.com/problems/longest-repeating-character-replacement/submissions/2064894636/
+python
+
+```python
+from collections import defaultdict
+
+def characterReplacement(s, k):
+    count = defaultdict(int)
+    left = 0
+    max_freq = 0
+    best = 0
+    for right in range(len(s)):
+        count[s[right]] += 1
+        max_freq = max(max_freq, count[s[right]])
+        # window invalid if (window size - most frequent char count) > k
+        while (right - left + 1) - max_freq > k:
+            count[s[left]] -= 1
+            left += 1
+        best = max(best, right - left + 1)
+    return best
+```
+
+**7. Permutation in String (Medium — fixed-size-like but check via frequency match)**
+
+python
+
+```python
+from collections import Counter
+
+def checkInclusion(s1, s2):
+    need = Counter(s1)
+    window = Counter()
+    left = 0
+    for right in range(len(s2)):
+        window[s2[right]] += 1
+        if right - left + 1 > len(s1):
+            window[s2[left]] -= 1
+            if window[s2[left]] == 0:
+                del window[s2[left]]
+            left += 1
+        if window == need:
+            return True
+    return False
+```
+
+---
+
+## Quick Recall Cheat-Sheet
+
+|Sub-pattern|Trigger phrase|Shrink condition|
+|---|---|---|
+|Fixed-size|"subarray of size k" given|slide by exactly 1 each step|
+|Variable — longest|"longest substring/subarray such that..."|shrink only while **invalid**|
+|Variable — shortest|"minimum/shortest subarray such that..."|shrink while **still valid**, record during shrink|
+|Variable — exact match|"contains all chars of t", "is a permutation of"|shrink using frequency counter comparison|
+
+**The one-line decision rule:**
+
+> Does the problem give you a fixed k? → Fixed window. Otherwise: does it want the _longest_ thing satisfying a condition? → grow, shrink only when broken. Does it want the _shortest_ thing satisfying a condition? → grow, shrink while still valid, capture answer each shrink.
+
+---
+
+## Practice list (do in this order — ~14 problems total)
+
+1. Maximum Sum Subarray of Size K
+2. Maximum Average Subarray I
+3. Longest Substring Without Repeating Characters
+4. Fruit Into Baskets
+5. Longest Substring with At Most K Distinct Characters
+6. Minimum Size Subarray Sum
+7. Longest Repeating Character Replacement
+8. Permutation in String
+9. Find All Anagrams in a String (Medium — same as #8, return all indices)
+10. Minimum Window Substring
+11. Sliding Window Maximum
+12. Subarrays with K Different Integers (Hard — bonus, "exactly K" = atMost(K) - atMost(K-1) trick)
+13. Max Consecutive Ones III (Medium — flip at most k zeros)
+14. Longest Subarray of 1's After Deleting One Element (Medium)
+
+**Rule of thumb before moving to the next pattern:** you should instantly tell whether a new problem is fixed-window, longest-variable, or shortest-variable just from the question wording — before touching code.

@@ -1,0 +1,373 @@
+## When to think "Binary Search"
+
+Trigger words/situations:
+
+- Array is **sorted** (or partially/rotated sorted)
+- "Find target in O(log n)"
+- "Find first/last occurrence", "find insertion point"
+- "Minimize the maximum" / "maximize the minimum" — even if no array is sorted at all
+- "Smallest value such that condition holds" / "smallest x such that f(x) is True"
+- Answer lies in a **range of numbers** (not just array indices) and is monotonic (once true, stays true)
+
+**Biggest mindset shift for this pattern:** Binary Search isn't just "search a sorted array." It's a general technique for **any monotonic search space** — even if there's no array in the problem at all. That second form ("Binary Search on Answer") is what surprises people at the medium level, so give it real attention.
+
+There are **4 sub-patterns**.
+
+---
+
+## SUB-PATTERN A: Classic Binary Search (Exact Match)
+
+**Recognize:** plain sorted array, find target's index.
+
+**Template:**
+
+```python
+def binary_search(arr, target):
+    lo, hi = 0, len(arr) - 1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    return -1
+```
+
+### Most asked problems
+
+**1. Binary Search (Easy — the template itself)** Exactly the code above.
+
+**2. Search Insert Position (Easy)**
+
+```python
+def searchInsert(nums, target):
+    lo, hi = 0, len(nums) - 1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if nums[mid] == target:
+            return mid
+        elif nums[mid] < target:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    return lo   # insertion point
+```
+
+**3. First Bad Version (Easy)**
+
+```python
+def firstBadVersion(n):
+    lo, hi = 1, n
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if isBadVersion(mid):
+            hi = mid
+        else:
+            lo = mid + 1
+    return lo
+```
+
+**Key insight:** this is the "find first True in a monotonic False...False,True...True sequence" shape — very common variant, note the `lo < hi` (not `<=`) and `hi = mid` (not `mid - 1`).
+
+---
+
+## SUB-PATTERN B: Boundary Search (First/Last Occurrence)
+
+**Recognize:** duplicates in sorted array, need leftmost or rightmost index of target.
+
+**Template (leftmost):**
+
+```python
+def find_leftmost(arr, target):
+    lo, hi = 0, len(arr) - 1
+    result = -1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if arr[mid] == target:
+            result = mid
+            hi = mid - 1     # keep searching left
+        elif arr[mid] < target:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    return result
+```
+
+### Most asked problems
+
+**1. Find First and Last Position of Element in Sorted Array (Medium — very common)**
+
+```python
+class Solution(object):
+    def searchRange(self, nums, target):
+
+        def first():
+            l, h = 0, len(nums) - 1
+            ans = -1
+
+            while l <= h:
+                mid = l + (h - l) // 2
+
+                if nums[mid] == target:
+                    ans = mid
+                    h = mid - 1      # continue left
+                elif nums[mid] < target:
+                    l = mid + 1
+                else:
+                    h = mid - 1
+
+            return ans
+
+        def last():
+            l, h = 0, len(nums) - 1
+            ans = -1
+
+            while l <= h:
+                mid = l + (h - l) // 2
+
+                if nums[mid] == target:
+                    ans = mid
+                    l = mid + 1      # continue right
+                elif nums[mid] < target:
+                    l = mid + 1
+                else:
+                    h = mid - 1
+
+            return ans
+
+        return [first(), last()]
+```
+
+**2. Count Occurrences of a Number in Sorted Array** — `last_index - first_index + 1` using the same helper above.
+
+---
+
+## SUB-PATTERN C: Binary Search on Rotated / Modified Arrays
+
+**Recognize:** array was sorted then rotated, or has a "peak" — still has structure, just not plain sorted.
+
+**1. Search in Rotated Sorted Array (Medium — extremely common)**
+
+```python
+def search(nums, target):
+    lo, hi = 0, len(nums) - 1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if nums[mid] == target:
+            return mid
+        if nums[lo] <= nums[mid]:          # left half is sorted
+            if nums[lo] <= target < nums[mid]:
+                hi = mid - 1
+            else:
+                lo = mid + 1
+        else:                               # right half is sorted
+            if nums[mid] < target <= nums[hi]:
+                lo = mid + 1
+            else:
+                hi = mid - 1
+    return -1
+```
+
+**Key insight:** at every step, **one half is always properly sorted**. Check which half is sorted first, then check if target lies inside that sorted half.
+
+**2. Find Minimum in Rotated Sorted Array (Medium)**
+
+```python
+def findMin(nums):
+    lo, hi = 0, len(nums) - 1
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if nums[mid] > nums[hi]:
+            lo = mid + 1
+        else:
+            hi = mid
+    return nums[lo]
+```
+
+**3. Find Peak Element (Medium)**
+
+```python
+def findPeakElement(nums):
+    lo, hi = 0, len(nums) - 1
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if nums[mid] > nums[mid + 1]:
+            hi = mid
+        else:
+            lo = mid + 1
+    return lo
+```
+
+**Key insight:** compare `mid` with `mid+1` — if descending, peak is on the left side (including mid); if ascending, peak is to the right.
+
+---
+
+## SUB-PATTERN D: Binary Search on Answer (the big mindset shift)
+
+**Recognize:** no sorted array at all, OR the question asks to "minimize the maximum" / "maximize the minimum" / "find smallest x such that condition(x) holds." The search space is a **range of possible answers**, not array indices.
+
+**How to set this up (4-step checklist):**
+
+1. Identify what you're searching for (a number: max load, min days, min speed, etc.)
+2. Define `lo` and `hi` as the **smallest and largest possible answer**
+3. Write a `feasible(x)` function: "can we achieve the goal if the answer were `x`?" — this must be **monotonic** (if x works, everything bigger/smaller than x in the same direction also works)
+4. Binary search on `x` using `feasible(x)` to shrink the range
+
+**Template:**
+
+```python
+def binary_search_on_answer(lo, hi, feasible):
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if feasible(mid):
+            hi = mid          # mid works, try smaller
+        else:
+            lo = mid + 1       # mid doesn't work, need bigger
+    return lo
+```
+
+### Most asked problems
+
+**1. Koko Eating Bananas (Medium — the textbook "binary search on answer" problem)**
+
+```python
+import math
+
+def minEatingSpeed(piles, h):
+    def feasible(speed):
+        hours = sum(math.ceil(p / speed) for p in piles)
+        return hours <= h
+
+    lo, hi = 1, max(piles)
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if feasible(mid):
+            hi = mid
+        else:
+            lo = mid + 1
+    return lo
+```
+
+**Setup breakdown:** answer = eating speed. `lo=1` (slowest), `hi=max(piles)` (fastest useful speed). `feasible(speed)` checks if Koko finishes in time `h`. Find smallest feasible speed.
+
+**2. Capacity To Ship Packages Within D Days (Medium — near-identical structure to Koko)**
+
+```python
+def shipWithinDays(weights, days):
+    def feasible(capacity):
+        days_needed = 1
+        curr = 0
+        for w in weights:
+            if curr + w > capacity:
+                days_needed += 1
+                curr = 0
+            curr += w
+        return days_needed <= days
+
+    lo, hi = max(weights), sum(weights)
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if feasible(mid):
+            hi = mid
+        else:
+            lo = mid + 1
+    return lo
+```
+
+**3. Split Array Largest Sum (Medium/Hard — same pattern again, minimize the max subarray sum)**
+
+```python
+def splitArray(nums, k):
+    def feasible(max_sum):
+        pieces = 1
+        curr = 0
+        for n in nums:
+            if curr + n > max_sum:
+                pieces += 1
+                curr = 0
+            curr += n
+        return pieces <= k
+
+    lo, hi = max(nums), sum(nums)
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if feasible(mid):
+            hi = mid
+        else:
+            lo = mid + 1
+    return lo
+```
+
+**Notice:** problems 2 and 3 are literally the same code shape — "minimize the max chunk such that number of chunks ≤ k."
+
+**4. Allocate Minimum Number of Pages (Medium — classic GFG/interview favorite, same pattern as above)** Same skeleton as Split Array Largest Sum — minimize max pages per student such that students used ≤ given students. - 
+
+not done
+
+**5. Find K-th Smallest Element (via binary search on value, when direct sort is too slow) — e.g. Kth Smallest Element in a Sorted Matrix (Medium)**
+
+not done
+
+```python
+def kthSmallest(matrix, k):
+    n = len(matrix)
+    lo, hi = matrix[0][0], matrix[n - 1][n - 1]
+
+    def count_less_equal(x):
+        count = 0
+        row, col = n - 1, 0
+        while row >= 0 and col < n:
+            if matrix[row][col] <= x:
+                count += row + 1
+                col += 1
+            else:
+                row -= 1
+        return count
+
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if count_less_equal(mid) >= k:
+            hi = mid
+        else:
+            lo = mid + 1
+    return lo
+```
+
+---
+
+## Quick Recall Cheat-Sheet
+
+|Sub-pattern|Trigger phrase|What you binary search over|
+|---|---|---|
+|Classic exact match|plain sorted array, find target|array indices|
+|Boundary search|duplicates, "first/last occurrence"|array indices, shrink toward one side after match|
+|Rotated/peak array|"rotated sorted array", "peak element"|array indices, but decide which half is sorted first|
+|Binary search on answer|"minimize the max", "smallest x such that...", no array or unsorted values|**the answer itself** (a range of numbers), using a feasible(x) check|
+
+**One-line decision rule:**
+
+> Is there a literal sorted array to search? → classic/boundary/rotated variants (pick based on duplicates/rotation). Is the problem asking to minimize/maximize some achievable value, or "find smallest x satisfying a condition"? → Binary Search on Answer — define `lo`, `hi` as answer bounds, write `feasible(x)`, binary search on `x`.
+
+---
+
+## Practice list (do in this order — ~14 problems total)
+
+1. Binary Search
+2. Search Insert Position
+3. First Bad Version
+4. Find First and Last Position of Element in Sorted Array
+5. Search in Rotated Sorted Array
+6. Find Minimum in Rotated Sorted Array
+7. Find Peak Element
+8. Search in Rotated Sorted Array II (Medium — bonus, duplicates make it trickier)
+9. Koko Eating Bananas
+![[Pasted image 20260713215554.png|421]]
+10. Capacity To Ship Packages Within D Days
+11. Split Array Largest Sum
+12. Allocate Minimum Number of Pages (GFG-style, same as #11)
+13. Kth Smallest Element in a Sorted Matrix
+14. Median of Two Sorted Arrays (Hard — bonus, if time allows; classic FAANG-style question but less likely at 10-12 LPA level)
+
+**Rule of thumb before moving to the next pattern:** the moment you see "minimize the maximum" or "smallest value such that," your hand should reach for `lo, hi = answer bounds` + `feasible(mid)` — without even looking for a sorted array in the problem, because there usually isn't one.

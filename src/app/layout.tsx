@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { DATA } from "@/data/resume";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { FlickeringGrid } from "@/components/magicui/flickering-grid";
@@ -98,6 +99,11 @@ export default function RootLayout({
             <Navbar />
           </TooltipProvider>
         </ThemeProvider>
+          <Script
+            strategy="afterInteractive"
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon='{"token":"b4291592ee4b4e8ea48b0ad39eae8109"}'
+          />
       </body>
     </html>
   );

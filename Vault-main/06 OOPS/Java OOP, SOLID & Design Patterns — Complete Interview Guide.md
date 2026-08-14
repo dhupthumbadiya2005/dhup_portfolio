@@ -1,0 +1,1806 @@
+## 📑 Table of Contents
+1. [Java Fundamentals](#1-java-fundamentals)
+2. [OOPs Concepts](#2-oops-concepts)
+3. [SOLID Principles](#3-solid-principles)
+4. [Design Patterns](#4-design-patterns)
+5. [Exception Handling](#5-exception-handling)
+6. [Collections Framework](#6-collections-framework)
+7. [Multithreading](#7-multithreading)
+8. [Interview Questions & Important Points](#8-interview-questions--important-points)
+
+---
+
+## 1. Java Fundamentals
+
+### 1.1 Key Features of Java
+- **Platform Independent** - WORA (Write Once Run Anywhere) - JVM is platform dependent
+- **Object-Oriented** - Everything is object
+- **Robust** - Strong memory management
+- **Secure** - No explicit pointers
+- **Multithreaded** - Supports concurrent programming
+- **Portable** - Same bytecode runs everywhere
+
+### 1.2 Basic Terminology
+
+#### JVM, JRE, JDK
+- **JVM** (Java Virtual Machine) - Executes bytecode
+- **JRE** (Java Runtime Environment) = JVM + Libraries
+- **JDK** (Java Development Kit) = JRE + Development Tools
+
+> **A compiler converts the whole program into machine code (or bytecode) before execution, while an interpreter translates and executes the program line by line.**
+
+#### Identifiers & Keywords
+```java
+// Legal Identifiers
+int age;           // ✓
+String name123;    // ✓
+double _salary;    // ✓
+float $amount;     // ✓
+
+// Illegal Identifiers
+int 123age;        // ✗ Can't start with number
+String class;      // ✗ Keyword
+float my-name;     // ✗ No hyphen
+
+// 50 Reserved Keywords
+// abstract, class, interface, extends, implements
+// public, private, protected, static, final
+// if, else, switch, case, break, continue
+// try, catch, finally, throw, throws
+// etc.
+```
+
+#### Data Types
+```java
+// Primitive Types (8 types)
+byte    b = 127;         // 1 byte
+short   s = 32767;       // 2 bytes
+int     i = 2147483647;  // 4 bytes
+long    l = 9223372036854775807L;  // 8 bytes
+float   f = 3.14f;       // 4 bytes
+double  d = 3.14159;     // 8 bytes
+char    c = 'A';         // 2 bytes
+boolean bool = true;     // 1 bit
+
+// Reference Types
+String str = "Hello";
+int[] arr = {1, 2, 3};
+Object obj = new Object();
+```
+
+#### Type Casting
+```java
+// Implicit (Widening) - Automatic
+byte → short → int → long → float → double
+
+// Explicit (Narrowing) - Manual
+double d = 10.5;
+int i = (int) d;    // 10 (loss of data)
+```
+
+### 1.3 Operators
+```java
+// Arithmetic: + - * / %
+// Relational: == != > < >= <=
+// Logical: && || !
+// Bitwise: & | ^ ~ << >>
+// Assignment: = += -= *= /= %=
+
+// Ternary Operator
+int age = 18;
+String status = (age >= 18) ? "Adult" : "Minor";
+```
+
+### 1.4 Control Statements
+
+#### If-Else
+```java
+if (condition) {
+    // code
+} else if (condition) {
+    // code
+} else {
+    // code
+}
+```
+
+#### Switch
+```java
+int day = 3;
+switch(day) {
+    case 1: System.out.println("Monday"); break;
+    case 2: System.out.println("Tuesday"); break;
+    case 3: System.out.println("Wednesday"); break;
+    default: System.out.println("Invalid");
+}
+```
+
+#### Loops
+```java
+// For Loop
+for (int i = 0; i < 5; i++) {
+    System.out.println(i);
+}
+
+// Enhanced For Loop
+int[] arr = {1, 2, 3};
+for (int num : arr) {
+    System.out.println(num);
+}
+
+// While Loop
+int i = 0;
+while (i < 5) {
+    System.out.println(i);
+    i++;
+}
+
+// Do-While
+do {
+    System.out.println(i);
+    i++;
+} while (i < 5);
+```
+
+---
+> **Procedural programming organizes code around functions, while object-oriented programming organizes code around objects that contain both data and methods.**
+## 2. OOPs Concepts
+
+### 2.1 Four Pillars of OOPs
+
+#### 1. Encapsulation
+**Theory:** Wrapping data and methods into a single unit, hiding internal details.
+
+**Key Points:**
+- Data hiding through private access modifier
+- Public getters/setters for controlled access
+- Improves maintainability and flexibility
+
+**Example:**
+```java
+public class BankAccount {
+    // Private fields
+    private String accountNumber;
+    private double balance;
+    
+    // Constructor
+    public BankAccount(String accountNumber) {
+        this.accountNumber = accountNumber;
+        this.balance = 0.0;
+    }
+    
+    // Public methods (getters and setters)
+    public double getBalance() {
+        return balance;
+    }
+    
+    public void deposit(double amount) {
+        if (amount > 0) {
+            balance += amount;
+        }
+    }
+    
+    public void withdraw(double amount) {
+        if (amount > 0 && amount <= balance) {
+            balance -= amount;
+        }
+    }
+}
+```
+
+#### 2. Inheritance
+**Theory:** Creating new classes (child) from existing classes (parent).
+
+**Key Points:**
+- Code reusability
+- `extends` keyword
+- Single inheritance in Java
+- `super` keyword to access parent
+
+**Example:**
+```java
+// Parent class
+class Animal {
+    String name;
+    
+    Animal(String name) {
+        this.name = name;
+    }
+    
+    void eat() {
+        System.out.println(name + " is eating");
+    }
+    
+    void sleep() {
+        System.out.println(name + " is sleeping");
+    }
+}
+
+// Child class
+class Dog extends Animal {
+    String breed;
+    
+    Dog(String name, String breed) {
+        super(name);  // Calling parent constructor
+        this.breed = breed;
+    }
+    
+    // Method Overriding
+    @Override
+    void eat() {
+        System.out.println(name + " (Dog) is eating pedigree");
+    }
+    
+    // Child-specific method
+    void bark() {
+        System.out.println(name + " is barking");
+    }
+}
+```
+
+#### 3. Polymorphism
+**Theory:** Ability to take many forms.
+
+**Types:**
+- **Compile-time (Method Overloading)** - Same method name, different parameters
+- **Runtime (Method Overriding)** - Child class redefines parent method
+
+**Example:**
+```java
+// Method Overloading (Compile-time)
+class Calculator {
+    int add(int a, int b) {
+        return a + b;
+    }
+    
+    int add(int a, int b, int c) {
+        return a + b + c;
+    }
+    
+    double add(double a, double b) {
+        return a + b;
+    }
+}
+
+// Method Overriding (Runtime)
+class Vehicle {
+    void start() {
+        System.out.println("Vehicle starting...");
+    }
+}
+
+class Car extends Vehicle {
+    @Override
+    void start() {
+        System.out.println("Car starting with key...");
+    }
+}
+
+class Motorcycle extends Vehicle {
+    @Override
+    void start() {
+        System.out.println("Motorcycle kick-starting...");
+    }
+}
+
+// Polymorphic behavior
+Vehicle v1 = new Car();
+Vehicle v2 = new Motorcycle();
+v1.start();  // Car starting with key...
+v2.start();  // Motorcycle kick-starting...
+```
+
+`Vehicle v = new Car();` means the reference is of the parent class, but the actual object is of the child class. You can access only the methods defined in `Vehicle`, but if those methods are overridden, the `Car` implementation runs at runtime. `Car c = new Car();` allows access to both inherited and `Car`-specific methods.
+
+
+
+#### 4. Abstraction
+**Theory:** Hiding implementation details and showing only essential features.
+
+**Key Points:**
+- Abstract classes (0-100% abstraction)
+- Interfaces (100% abstraction)
+- `abstract` keyword
+
+**Example:**
+```java
+// Abstract Class
+abstract class Shape {
+    String color;
+    
+    Shape(String color) {
+        this.color = color;
+    }
+    
+    // Abstract method
+    abstract double area();
+    
+    // Concrete method
+    void display() {
+        System.out.println("Color: " + color);
+        System.out.println("Area: " + area());
+    }
+}
+
+// Concrete class
+class Circle extends Shape {
+    double radius;
+    
+    Circle(String color, double radius) {
+        super(color);
+        this.radius = radius;
+    }
+    
+    @Override
+    double area() {
+        return Math.PI * radius * radius;
+    }
+}
+
+// Interface (100% abstraction)
+interface Drawable {
+    void draw();  // Abstract by default
+    
+    default void print() {  // Java 8+
+        System.out.println("Printing...");
+    }
+    
+    static void show() {   // Java 8+
+        System.out.println("Showing...");
+    }
+}
+
+// Implementing interface
+class Rectangle extends Shape implements Drawable {
+    double length, width;
+    
+    Rectangle(String color, double length, double width) {
+        super(color);
+        this.length = length;
+        this.width = width;
+    }
+    
+    @Override
+    double area() {
+        return length * width;
+    }
+    
+    @Override
+    public void draw() {
+        System.out.println("Drawing Rectangle");
+    }
+}
+```
+
+- **Abstraction:** _Hides unnecessary implementation details and exposes only the essential functionality._
+- **Polymorphism:** _Allows the same method or interface to have different behaviors depending on the object, making code flexible and reusable._
+
+### 2.2 Important OOPs Keywords
+
+#### `this` Keyword
+```java
+class Student {
+    String name;
+    int age;
+    
+    Student(String name, int age) {
+        this.name = name;      // Referring to instance variable
+        this.age = age;
+    }
+    
+    void display() {
+        System.out.println(this.name);  // Implicit
+    }
+}
+```
+
+#### `super` Keyword
+```java
+class Parent {
+    String value = "Parent";
+    
+    void show() {
+        System.out.println("Parent method");
+    }
+}
+
+class Child extends Parent {
+    String value = "Child";
+    
+    void show() {
+        super.show();          // Calling parent method
+        System.out.println(super.value);  // Access parent variable
+        System.out.println(this.value);   // Access child variable
+    }
+}
+```
+
+#### `final` Keyword
+```java
+// For class - Cannot be inherited
+final class FinalClass { }
+
+// For method - Cannot be overridden
+class Parent {
+    final void finalMethod() { }
+}
+
+// For variable - Cannot be changed (constant)
+final int MAX_VALUE = 100;
+```
+
+#### `static` Keyword
+```java
+class Counter {
+    static int count = 0;    // Shared across all instances
+    int instanceVar = 0;
+    
+    static void staticMethod() {
+        System.out.println("Static method");
+        // Can't access instance variables directly
+    }
+    
+    void instanceMethod() {
+        System.out.println("Instance method");
+        System.out.println(count);  // Can access static
+    }
+}
+
+// Usage
+Counter.staticMethod();  // Call without object
+System.out.println(Counter.count);
+```
+
+---
+
+## 3. SOLID Principles
+
+**SOLID** is an acronym for **five design principles** that help developers create **maintainable, scalable, and robust** object-oriented software.
+### S - Single Responsibility Principle (SRP)
+
+**Theory:** A class should have only one reason to change. - Each class should have **exactly one responsibility** or job.
+- **Single Job:** A class should do only one thing
+- **One Reason to Change:** If you need to modify the class, there should be only one reason (its single responsibility)
+- **Separation of Concerns:** Different concerns should be in different classes
+```java
+// ❌ Bad - Multiple responsibilities
+class Employee {
+    void calculateSalary() { }
+    void saveToDatabase() { }
+    void generateReport() { }
+}
+
+// ✅ Good - Single responsibility each
+class SalaryCalculator {
+    void calculateSalary(Employee e) { }
+}
+
+class EmployeeRepository {
+    void save(Employee e) { }
+}
+
+class ReportGenerator {
+    void generate(Employee e) { }
+}
+```
+
+
+### O - Open/Closed Principle (OCP)
+**Theory:** Open for extension, closed for modification.
+**Software entities (classes, modules, functions) should be open for extension but closed for modification**
+- **Open for Extension**: You can add new functionality
+- **Closed for Modification**: You don't change existing code
+- **Add new features by extending, not by modifying existing code**
+
+```java
+// ❌ BAD - Violates OCP (Must modify for new shapes)
+class AreaCalculator {
+    public double calculateArea(Object shape) {
+        // ❌ Need to modify for EVERY new shape
+        if (shape instanceof Rectangle) {
+            Rectangle r = (Rectangle) shape;
+            return r.width * r.height;
+        } else if (shape instanceof Circle) {
+            Circle c = (Circle) shape;
+            return Math.PI * c.radius * c.radius;
+        }
+        // ❌ Must add else-if for Triangle
+        else if (shape instanceof Triangle) {
+            Triangle t = (Triangle) shape;
+            return 0.5 * t.base * t.height;
+        }
+        return 0;
+    }
+}
+
+// ✅ GOOD - Follows OCP (Extend without modifying)
+
+// Abstraction - Open for extension
+interface Shape {
+    double calculateArea();  // Closed for modification
+}
+
+// Implementations - Can add as many as needed
+class Rectangle implements Shape {
+    private double width, height;
+    
+    Rectangle(double width, double height) {
+        this.width = width;
+        this.height = height;
+    }
+    
+    @Override
+    public double calculateArea() {
+        return width * height;
+    }
+}
+
+class Circle implements Shape {
+    private double radius;
+    
+    Circle(double radius) {
+        this.radius = radius;
+    }
+    
+    @Override
+    public double calculateArea() {
+        return Math.PI * radius * radius;
+    }
+}
+
+// ✅ NEW Shape - No existing code modified!
+class Triangle implements Shape {
+    private double base, height;
+    
+    Triangle(double base, double height) {
+        this.base = base;
+        this.height = height;
+    }
+    
+    @Override
+    public double calculateArea() {
+        return 0.5 * base * height;
+    }
+}
+
+// AreaCalculator - Closed for modification
+class AreaCalculator {
+    public double calculateTotalArea(Shape[] shapes) {
+        double total = 0;
+        for (Shape shape : shapes) {
+            total += shape.calculateArea();  // Works with ANY shape
+        }
+        return total;
+    }
+}
+
+// Usage
+public class OCPDemo {
+    public static void main(String[] args) {
+        Shape[] shapes = {
+            new Rectangle(10, 20),
+            new Circle(7),
+            new Triangle(8, 10)  // New shape works without changes! ✅
+        };
+        
+        AreaCalculator calculator = new AreaCalculator();
+        System.out.println("Total Area: " + calculator.calculateTotalArea(shapes));
+    }
+}
+```
+
+### L - Liskov Substitution Principle (LSP)
+
+**Theory:** **Objects of a superclass should be replaceable with objects of a subclass without affecting the correctness of the program.**
+
+- **Child classes should be substitutable for parent classes**
+- **A program using parent class should work correctly when using child class**
+- **Child should not change the behavior expected from parent**
+
+
+> **Liskov Substitution Principle states that a child class should be replaceable for its parent class without changing the program's behavior. The `Rectangle`–`Square` example violates LSP because a square cannot behave exactly like a general rectangle. Similarly, `Ostrich` should not extend `Bird` if `Bird` guarantees a `fly()` method, since replacing a `Bird` with an `Ostrich` breaks the expected behavior.**
+
+
+```java
+
+// ❌ Bad
+class Bird {
+    void fly() {
+        System.out.println("Bird is flying");
+    }
+}
+
+class Ostrich extends Bird {
+    @Override
+    void fly() {
+        throw new UnsupportedOperationException("Ostrich can't fly");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Bird bird = new Ostrich();
+        bird.fly();      // ❌ Runtime Error
+    }
+}
+
+// ✅ Good
+
+class Bird {
+    void eat() {
+        System.out.println("Bird is eating");
+    }
+}
+
+class Sparrow extends Bird {
+    @Override
+    void eat() {
+        System.out.println("Sparrow is eating");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Bird bird = new Sparrow();
+        bird.eat();      // ✅ Works perfectly
+    }
+}
+```
+
+### I - Interface Segregation Principle (ISP)
+
+**Theory:** **Clients should not be forced to depend on interfaces they do not use.**
+
+- **Don't create fat/bloated interfaces**
+- **Split large interfaces into smaller, focused ones**
+- **Classes should only implement what they need**
+
+
+
+```java
+// ❌ Bad - Fat interface
+interface Worker {
+    void work();
+    void eat();
+    void sleep();
+}
+
+// ✅ Good - Segregated interfaces
+interface Workable {
+    void work();
+}
+
+interface Eatable {
+    void eat();
+}
+
+interface Sleepable {
+    void sleep();
+}
+
+class Developer implements Workable, Eatable {
+    public void work() { }
+    public void eat() { }
+    // Not forced to implement sleep
+}
+```
+
+### D - Dependency Inversion Principle (DIP)
+
+**High-level modules should not depend on low-level modules. Both should depend on abstractions. Abstractions should not depend on details. Details should depend on abstractions.**
+
+- **High-level modules (business logic) → Don't depend on low-level modules (database, API)**
+- **Both depend on interfaces/abstractions**
+- **Concrete implementations (details) implement the abstractions**
+
+Dependency Inversion Principle means high-level classes should depend on interfaces (abstractions) rather than concrete classes, making the code flexible, loosely coupled, and easy to extend.
+
+
+```java
+class Keyboard {
+    void type() {
+        System.out.println("Typing...");
+    }
+}
+
+class Computer {
+    private Keyboard keyboard = new Keyboard(); // ❌ Depends on concrete class
+
+    void work() {
+        keyboard.type();
+    }
+}
+
+
+
+
+
+
+✅ Good Example
+
+interface Keyboard {
+    void type();
+}
+
+class WiredKeyboard implements Keyboard {
+    public void type() {
+        System.out.println("Typing with Wired Keyboard");
+    }
+}
+
+class WirelessKeyboard implements Keyboard {
+    public void type() {
+        System.out.println("Typing with Wireless Keyboard");
+    }
+}
+
+class Computer {
+    private Keyboard keyboard;
+
+    Computer(Keyboard keyboard) {
+        this.keyboard = keyboard;
+    }
+
+    void work() {
+        keyboard.type();
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Keyboard keyboard = new WirelessKeyboard();
+        Computer computer = new Computer(keyboard);
+
+        computer.work();
+    }
+}
+```
+
+SRP: Employee → Employee + SalaryCalc + EmployeeRepo
+OCP: Shape → Add Triangle without modifying AreaCalc
+LSP: Square should NOT extend Rectangle
+ISP: Worker → Workable + Eatable + Sleepable
+DIP: NotificationService + MessageSender interface
+
+---
+
+## 4. Design Patterns
+
+### 4.1 Singleton Pattern
+**Theory:** Ensures a class has only one instance and provides global access.
+
+#### Types of Singleton Implementation
+
+**1. Eager Initialization**
+```java
+public class EagerSingleton {
+    // Create instance at class loading
+    private static final EagerSingleton INSTANCE = new EagerSingleton();
+    
+    private EagerSingleton() { }
+    
+    public static EagerSingleton getInstance() {
+        return INSTANCE;
+    }
+}
+```
+
+**2. Lazy Initialization**
+```java
+public class LazySingleton {
+    private static LazySingleton instance;
+    
+    private LazySingleton() { }
+    
+    public static LazySingleton getInstance() {
+        if (instance == null) {
+            instance = new LazySingleton();
+        }
+        return instance;
+    }
+}
+```
+
+**3. Thread-safe Singleton**
+```java
+public class ThreadSafeSingleton {
+    private static volatile ThreadSafeSingleton instance;
+    
+    private ThreadSafeSingleton() { }
+    
+    public static ThreadSafeSingleton getInstance() {
+        if (instance == null) {
+            synchronized (ThreadSafeSingleton.class) {
+                if (instance == null) {
+                    instance = new ThreadSafeSingleton();
+                }
+            }
+        }
+        return instance;
+    }
+}
+```
+
+**4. Bill Pugh Singleton (Best Practice)**
+```java
+public class BillPughSingleton {
+    private BillPughSingleton() { }
+    
+    private static class SingletonHelper {
+        private static final BillPughSingleton INSTANCE = 
+            new BillPughSingleton();
+    }
+    
+    public static BillPughSingleton getInstance() {
+        return SingletonHelper.INSTANCE;
+    }
+}
+```
+
+**5. Enum Singleton (Most Secure)**
+```java
+public enum EnumSingleton {
+    INSTANCE;
+    
+    public void doSomething() {
+        System.out.println("Doing something...");
+    }
+}
+
+// Usage
+EnumSingleton.INSTANCE.doSomething();
+```
+
+### 4.2 Factory Pattern
+**Theory:** Creates objects without exposing instantiation logic to client.
+
+```java
+// Product Interface
+interface Animal {
+    void speak();
+}
+
+// Concrete Products
+class Dog implements Animal {
+    @Override
+    public void speak() {
+        System.out.println("Woof!");
+    }
+}
+
+class Cat implements Animal {
+    @Override
+    public void speak() {
+        System.out.println("Meow!");
+    }
+}
+
+// Factory Class
+class AnimalFactory {
+    public static Animal createAnimal(String type) {
+        if (type == null || type.isEmpty()) {
+            return null;
+        }
+        
+        switch(type.toLowerCase()) {
+            case "dog":
+                return new Dog();
+            case "cat":
+                return new Cat();
+            default:
+                throw new IllegalArgumentException("Unknown animal: " + type);
+        }
+    }
+}
+
+// Usage
+public class FactoryDemo {
+    public static void main(String[] args) {
+        Animal dog = AnimalFactory.createAnimal("dog");
+        Animal cat = AnimalFactory.createAnimal("cat");
+        
+        dog.speak();  // Woof!
+        cat.speak();  // Meow!
+    }
+}
+```
+
+---
+
+## 5. Exception Handling
+
+### 5.1 Exception Hierarchy
+```
+Throwable
+├── Error (Unchecked) - JVM errors, OutOfMemoryError, StackOverflowError
+└── Exception
+    ├── RuntimeException (Unchecked) - Programming errors
+    │   ├── NullPointerException
+    │   ├── ArrayIndexOutOfBoundsException
+    │   ├── ArithmeticException
+    │   └── ClassCastException
+    └── Checked Exceptions - Must handle or declare
+        ├── IOException
+        ├── SQLException
+        └── InterruptedException
+```
+
+### 5.2 Exception Handling Keywords
+
+#### `try-catch-finally`
+```java
+public class ExceptionDemo {
+    public static void main(String[] args) {
+        try {
+            int result = 10 / 0;  // ArithmeticException
+            int[] arr = new int[5];
+            arr[10] = 100;  // ArrayIndexOutOfBoundsException
+        } catch (ArithmeticException e) {
+            System.out.println("Cannot divide by zero!");
+            System.out.println("Message: " + e.getMessage());
+            e.printStackTrace();
+        } catch (ArrayIndexOutOfBoundsException e) {
+            System.out.println("Array index out of bounds!");
+        } catch (Exception e) {
+            System.out.println("Generic exception handler");
+        } finally {
+            System.out.println("This always executes");
+        }
+    }
+}
+```
+
+#### `throw` and `throws`
+```java
+// Checked Exception
+public class ThrowDemo {
+    // Method declares it throws exception
+    public static void validateAge(int age) throws IllegalArgumentException {
+        if (age < 0 || age > 120) {
+            // Throwing exception manually
+            throw new IllegalArgumentException("Invalid age: " + age);
+        }
+        System.out.println("Valid age: " + age);
+    }
+    
+    public static void main(String[] args) {
+        try {
+            validateAge(150);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Caught: " + e.getMessage());
+        }
+    }
+}
+```
+
+#### Custom Exception
+```java
+// Custom checked exception
+class InsufficientFundsException extends Exception {
+    private double amount;
+    
+    public InsufficientFundsException(String message, double amount) {
+        super(message);
+        this.amount = amount;
+    }
+    
+    public double getAmount() {
+        return amount;
+    }
+}
+
+// Custom unchecked exception
+class InvalidTransactionException extends RuntimeException {
+    public InvalidTransactionException(String message) {
+        super(message);
+    }
+}
+
+// Usage
+class BankAccount {
+    private double balance = 1000;
+    
+    public void withdraw(double amount) 
+            throws InsufficientFundsException {
+        if (amount > balance) {
+            throw new InsufficientFundsException(
+                "Insufficient balance", amount - balance
+            );
+        }
+        balance -= amount;
+    }
+}
+```
+
+### 5.3 Best Practices
+1. Always use `finally` to release resources
+2. Use specific exceptions, not generic `Exception`
+3. Don't ignore exceptions (empty catch block)
+4. Log exceptions appropriately
+5. Use `try-with-resources` (Java 7+)
+
+```java
+// try-with-resources (AutoCloseable)
+try (FileReader fr = new FileReader("file.txt");
+     BufferedReader br = new BufferedReader(fr)) {
+    String line;
+    while ((line = br.readLine()) != null) {
+        System.out.println(line);
+    }
+} catch (IOException e) {
+    System.err.println("Error reading file: " + e.getMessage());
+}
+```
+
+---
+
+## 6. Collections Framework
+
+### 6.1 Collection Hierarchy
+```
+Iterable
+└── Collection
+    ├── List (Ordered, allows duplicates)
+    │   ├── ArrayList (Dynamic array)
+    │   ├── LinkedList (Doubly linked list)
+    │   └── Vector (Thread-safe)
+    │       └── Stack
+    ├── Set (No duplicates, unordered)
+    │   ├── HashSet (Hash table)
+    │   │   └── LinkedHashSet (Preserves insertion order)
+    │   └── TreeSet (Sorted, Red-Black tree)
+    └── Queue (FIFO)
+        └── PriorityQueue (Heap)
+            └── Deque
+
+Map (Not part of Collection)
+├── HashMap (Hash table)
+│   └── LinkedHashMap (Preserves insertion order)
+├── TreeMap (Sorted, Red-Black tree)
+└── Hashtable (Thread-safe)
+```
+
+### 6.2 List Interface
+
+#### ArrayList
+```java
+import java.util.*;
+
+public class ArrayListDemo {
+    public static void main(String[] args) {
+        // Creation
+        ArrayList<String> list = new ArrayList<>();
+        
+        // Adding elements
+        list.add("Apple");
+        list.add("Banana");
+        list.add("Orange");
+        list.add(1, "Mango");  // Add at index
+        
+        // Accessing
+        String fruit = list.get(2);  // Get by index
+        list.set(1, "Grapes");  // Update
+        
+        // Removing
+        list.remove("Apple");  // By value
+        list.remove(1);        // By index
+        
+        // Size
+        int size = list.size();
+        
+        // Checking
+        boolean contains = list.contains("Banana");
+        int index = list.indexOf("Orange");
+        
+        // Iteration
+        // 1. For-each
+        for (String s : list) {
+            System.out.println(s);
+        }
+        
+        // 2. Iterator
+        Iterator<String> it = list.iterator();
+        while (it.hasNext()) {
+            System.out.println(it.next());
+        }
+        
+        // 3. Java 8 Stream
+        list.forEach(System.out::println);
+    }
+}
+```
+
+#### LinkedList
+```java
+public class LinkedListDemo {
+    public static void main(String[] args) {
+        LinkedList<String> list = new LinkedList<>();
+        
+        // List methods
+        list.add("First");
+        list.add("Second");
+        
+        // LinkedList-specific methods
+        list.addFirst("Start");
+        list.addLast("End");
+        list.removeFirst();
+        list.removeLast();
+        
+        String first = list.getFirst();
+        String last = list.getLast();
+        
+        // Use as Queue
+        list.offer("Element");  // Add
+        String element = list.poll();  // Remove and return
+        String peek = list.peek();  // View without removing
+    }
+}
+```
+
+### 6.3 Set Interface
+
+#### HashSet
+```java
+public class HashSetDemo {
+    public static void main(String[] args) {
+        HashSet<String> set = new HashSet<>();
+        
+        set.add("Apple");
+        set.add("Banana");
+        set.add("Apple");  // Won't be added (duplicate)
+        
+        System.out.println("Size: " + set.size());  // 2
+        
+        // Checks
+        boolean hasApple = set.contains("Apple");
+        set.remove("Banana");
+        boolean isEmpty = set.isEmpty();
+        
+        // Iteration (unordered)
+        for (String s : set) {
+            System.out.println(s);
+        }
+    }
+}
+```
+
+### 6.4 Map Interface
+
+#### HashMap
+```java
+public class HashMapDemo {
+    public static void main(String[] args) {
+        HashMap<String, Integer> map = new HashMap<>();
+        
+        // Adding key-value pairs
+        map.put("John", 25);
+        map.put("Alice", 30);
+        map.put("Bob", 35);
+        map.put("John", 26);  // Updates value
+        
+        // Accessing
+        int johnAge = map.get("John");
+        int defaultValue = map.getOrDefault("Mary", 0);
+        
+        // Checking
+        boolean hasKey = map.containsKey("Alice");
+        boolean hasValue = map.containsValue(30);
+        
+        // Removing
+        map.remove("Bob");
+        
+        // Iteration
+        // 1. EntrySet
+        for (Map.Entry<String, Integer> entry : map.entrySet()) {
+            System.out.println(entry.getKey() + " = " + entry.getValue());
+        }
+        
+        // 2. KeySet
+        for (String key : map.keySet()) {
+            System.out.println(key + " -> " + map.get(key));
+        }
+        
+        // 3. Java 8
+        map.forEach((key, value) -> 
+            System.out.println(key + ": " + value));
+    }
+}
+```
+
+### 6.5 Sorting and Comparators
+
+#### Comparable
+```java
+// Natural ordering
+class Student implements Comparable<Student> {
+    String name;
+    int rollNo;
+    
+    Student(String name, int rollNo) {
+        this.name = name;
+        this.rollNo = rollNo;
+    }
+    
+    @Override
+    public int compareTo(Student other) {
+        return this.rollNo - other.rollNo;  // Ascending
+        // return other.rollNo - this.rollNo;  // Descending
+        // return this.name.compareTo(other.name);  // String
+    }
+    
+    @Override
+    public String toString() {
+        return name + "(" + rollNo + ")";
+    }
+}
+
+// Usage
+List<Student> students = new ArrayList<>();
+students.add(new Student("Alice", 103));
+students.add(new Student("Bob", 101));
+students.add(new Student("Charlie", 102));
+
+Collections.sort(students);  // Sorts by rollNo
+```
+
+#### Comparator
+```java
+// Custom ordering
+class NameComparator implements Comparator<Student> {
+    @Override
+    public int compare(Student s1, Student s2) {
+        return s1.name.compareTo(s2.name);
+    }
+}
+
+// Usage
+Collections.sort(students, new NameComparator());
+
+// Java 8 Lambda
+Collections.sort(students, (s1, s2) -> 
+    s1.name.compareTo(s2.name));
+
+// Reverse order
+Collections.sort(students, Comparator.reverseOrder());
+```
+
+### 6.6 Important Collection Methods
+
+```java
+// Collections utility class
+Collections.sort(list);           // Sort
+Collections.reverse(list);        // Reverse
+Collections.shuffle(list);        // Randomize
+Collections.copy(dest, src);      // Copy
+Collections.frequency(list, obj); // Count occurrences
+Collections.max(list);            // Max value
+Collections.min(list);            // Min value
+Collections.binarySearch(list, key); // Binary search
+
+// Converting
+// Array to List
+String[] arr = {"a", "b", "c"};
+List<String> list = Arrays.asList(arr);
+
+// List to Array
+String[] array = list.toArray(new String[0]);
+
+// Synchronized versions
+List<String> syncList = Collections.synchronizedList(new ArrayList<>());
+Map<String, Integer> syncMap = Collections.synchronizedMap(new HashMap<>());
+```
+
+---
+
+## 7. Multithreading
+
+
+> **Multithreading is the process of executing multiple threads concurrently within a single program to perform multiple tasks efficiently.**
+
+A **thread** is the **smallest unit of execution** inside a process.
+
+## Example
+
+Without multithreading:
+
+```
+Task 1 → Task 2 → Task 3
+```
+
+With multithreading:
+
+```
+Thread 1 → Task 1
+Thread 2 → Task 2
+Thread 3 → Task 3
+```
+
+All tasks run concurrently.
+
+- ✅ Better CPU utilization
+- ✅ Faster execution
+- ✅ Perform multiple tasks simultaneously
+- ✅ Improves responsiveness (e.g., GUI applications)
+
+- `Runnable` → Preferred because Java supports **single inheritance**, and implementing an interface lets your class extend another class if needed.
+- `Thread` → Simpler for basic examples but less flexible.
+
+A **race condition** occurs when multiple threads access and modify shared data simultaneously, leading to unpredictable results.
+
+```
+New
+ ↓
+Runnable
+ ↓
+Running
+ ↓
+Blocked / Waiting (optional)
+ ↓
+Terminated
+```
+> The thread object is created, but `start()` has **not** been called yet.
+>  After calling `start()`, the thread is **ready to run** and waits for CPU time.
+> The CPU picks the thread, and it starts executing the `run()` method.
+>  The thread is temporarily paused because it is waiting for a lock, another thread, or a timeout (e.g., `sleep()`, `wait()`, `join()`).
+>  The thread finishes executing its `run()` method or stops due to an exception.
+
+### 7.1 Thread Creation
+
+#### 1. Extending Thread Class
+```java
+class MyThread extends Thread {
+    @Override
+    public void run() {
+        for (int i = 1; i <= 5; i++) {
+            System.out.println(Thread.currentThread().getName() + ": " + i);
+            try {
+                Thread.sleep(1000);  // Pause for 1 second
+            } catch (InterruptedException e) {
+                System.out.println("Thread interrupted");
+            }
+        }
+    }
+}
+
+// Usage
+MyThread t1 = new MyThread();
+MyThread t2 = new MyThread();
+t1.start();  // Start thread
+t2.start();
+```
+
+#### 2. Implementing Runnable Interface
+```java
+class MyRunnable implements Runnable {
+    @Override
+    public void run() {
+        for (int i = 1; i <= 5; i++) {
+            System.out.println(Thread.currentThread().getName() + ": " + i);
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+}
+
+// Usage
+Thread t1 = new Thread(new MyRunnable(), "Thread-1");
+Thread t2 = new Thread(new MyRunnable(), "Thread-2");
+t1.start();
+t2.start();
+```
+
+## `start()` vs `run()`
+
+```
+t.start();   // Creates a new thread ✅
+t.run();     // Normal method call ❌
+```
+
+Always use **`start()`** to create a new thread.
+#### 3. Java 8 Lambda
+```java
+Runnable task = () -> {
+    for (int i = 1; i <= 5; i++) {
+        System.out.println(Thread.currentThread().getName() + ": " + i);
+    }
+};
+
+new Thread(task).start();
+```
+
+### 7.2 Thread Lifecycle
+```
+NEW → READY → RUNNING → TERMINATED
+         ↓         ↓
+    WAITING    BLOCKED
+    TIMED_WAITING
+```
+
+### 7.3 Thread Methods
+```java
+// Important thread methods
+t.start();          // Start thread
+t.run();            // Called by JVM
+t.sleep(1000);      // Static - Pause current thread
+t.join();           // Wait for thread to finish
+t.join(2000);       // Wait max 2 seconds
+t.yield();          // Yield CPU time
+t.setPriority(10);  // Set priority (1-10)
+t.setDaemon(true);  // Daemon thread
+t.interrupt();      // Interrupt thread
+```
+
+### 7.4 Synchronization
+
+#### Problem without Synchronization
+```java
+class Counter {
+    int count = 0;
+    
+    void increment() {
+        count++;  // Not atomic
+    }
+}
+
+// Race condition problem
+Counter counter = new Counter();
+Thread t1 = new Thread(() -> {
+    for (int i = 0; i < 1000; i++) counter.increment();
+});
+Thread t2 = new Thread(() -> {
+    for (int i = 0; i < 1000; i++) counter.increment();
+});
+// count may not be 2000
+```
+
+#### Solution 1: Synchronized Method
+```java
+class SynchronizedCounter {
+    int count = 0;
+    
+    synchronized void increment() {
+        count++;  // Thread-safe
+    }
+    
+    synchronized int getCount() {
+        return count;
+    }
+}
+```
+
+#### Solution 2: Synchronized Block
+```java
+class SharedResource {
+    int count = 0;
+    
+    void increment() {
+        synchronized (this) {
+            count++;
+        }
+    }
+    
+    // Better: Use separate lock object
+    private final Object lock = new Object();
+    
+    void safeIncrement() {
+        synchronized (lock) {
+            count++;
+        }
+    }
+}
+```
+
+### 7.5 Inter-thread Communication
+
+#### Producer-Consumer Example
+```java
+class SharedBuffer {
+    private int data;
+    private boolean available = false;
+    
+    synchronized void produce(int value) throws InterruptedException {
+        while (available) {
+            wait();  // Wait if buffer has data
+        }
+        data = value;
+        System.out.println("Produced: " + value);
+        available = true;
+        notify();  // Notify consumer
+    }
+    
+    synchronized int consume() throws InterruptedException {
+        while (!available) {
+            wait();  // Wait if no data
+        }
+        available = false;
+        System.out.println("Consumed: " + data);
+        notify();  // Notify producer
+        return data;
+    }
+}
+
+// Usage
+SharedBuffer buffer = new SharedBuffer();
+
+Thread producer = new Thread(() -> {
+    for (int i = 1; i <= 5; i++) {
+        try {
+            buffer.produce(i);
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+});
+
+Thread consumer = new Thread(() -> {
+    for (int i = 1; i <= 5; i++) {
+        try {
+            int val = buffer.consume();
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+});
+```
+
+### 7.6 Executor Framework
+
+```java
+import java.util.concurrent.*;
+
+public class ExecutorDemo {
+    public static void main(String[] args) {
+        // 1. Fixed thread pool
+        ExecutorService executor = Executors.newFixedThreadPool(3);
+        
+        // Submit tasks
+        for (int i = 0; i < 10; i++) {
+            executor.execute(() -> {
+                System.out.println(Thread.currentThread().getName() + 
+                    " is running");
+            });
+        }
+        
+        // 2. Cached thread pool
+        ExecutorService cachedPool = Executors.newCachedThreadPool();
+        
+        // 3. Single thread executor
+        ExecutorService single = Executors.newSingleThreadExecutor();
+        
+        // Shutdown
+        executor.shutdown();
+        
+        // With return value
+        Future<String> future = executor.submit(() -> {
+            Thread.sleep(1000);
+            return "Task completed";
+        });
+        
+        try {
+            String result = future.get();  // Blocking
+            System.out.println(result);
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### 7.7 Concurrent Collections
+```java
+// Thread-safe collections
+// 1. ConcurrentHashMap - Thread-safe HashMap
+ConcurrentHashMap<String, Integer> map = new ConcurrentHashMap<>();
+
+// 2. CopyOnWriteArrayList - Thread-safe ArrayList
+CopyOnWriteArrayList<String> list = new CopyOnWriteArrayList<>();
+
+// 3. BlockingQueue
+BlockingQueue<Integer> queue = new ArrayBlockingQueue<>(10);
+
+// 4. CountDownLatch
+CountDownLatch latch = new CountDownLatch(3);
+
+// 5. CyclicBarrier
+CyclicBarrier barrier = new CyclicBarrier(3);
+
+// 6. Semaphore
+Semaphore semaphore = new Semaphore(2);
+
+// 7. Atomic classes
+AtomicInteger atomicInt = new AtomicInteger(0);
+atomicInt.incrementAndGet();
+atomicInt.decrementAndGet();
+```
+
+---
+
+## 8. Interview Questions & Important Points
+
+### 8.1 Quick Reference Questions
+
+#### Java Basics
+1. **What is JDK, JRE, JVM?** 
+   - JDK = Development tools + JRE
+   - JRE = Libraries + JVM
+   - JVM = Executes bytecode
+
+2. **Difference between == and equals()?**
+   - `==` compares references (memory address)
+   - `equals()` compares content (overridden in String)
+
+3. **Difference between String, StringBuilder, StringBuffer?**
+   - String: Immutable, thread-safe
+   - StringBuilder: Mutable, not thread-safe (fastest)
+   - StringBuffer: Mutable, thread-safe
+
+4. **What are access modifiers?**
+   - `private`: Only within class
+   - `default`: Within package
+   - `protected`: Within package + subclasses
+   - `public`: Everywhere
+
+5. **Difference between abstract class and interface?**
+   - Abstract: 0-100%, can have instance variables, constructor
+   - Interface: 100% abstract (before Java 8), static final variables
+
+- **Abstract Class:** Use when classes share common state and implementation.
+- **Interface:** Use when you want to define a common contract that different classes can implement.
+An abstract class provides partial implementation and can maintain state, while an interface defines a contract for behavior and supports multiple inheritance through implementation.
+
+6. **What is method overloading vs overriding?**
+   - Overloading: Same name, different params (compile-time)
+   - Overriding: Same signature in child class (runtime)
+
+#### Advanced Topics
+7. **What is garbage collection?** 
+   - Automatic memory management
+   - `System.gc()` suggests but doesn't force
+   - **Garbage Collection (GC)** is the automatic process of **removing unused objects from memory (heap)** to free up space.
+
+8. **Difference between checked and unchecked exceptions?**
+   - Checked: Compile-time (IOException, SQLException)
+   - Unchecked: Runtime (NullPointerException, ArithmeticException)
+
+9. **What is fail-fast and fail-safe?**
+   - Fail-fast: Immediately throw exception on modification (ArrayList)
+   - Fail-safe: Work on copy (ConcurrentHashMap, CopyOnWriteArrayList)
+
+10. **Difference between HashMap and HashTable?**
+- HashMap: Not synchronized, allows null
+- HashTable: Synchronized, doesn't allow null
+
+### 8.2 Code Snippets for Quick Revision
+
+#### String Manipulation
+```java
+// String Immutability
+String s1 = "Hello";
+String s2 = s1.concat(" World");  // New object created
+String s3 = "Hello World";
+
+// String equality
+String str1 = new String("Hello");
+String str2 = new String("Hello");
+str1 == str2;      // false
+str1.equals(str2); // true
+
+// StringBuilder
+StringBuilder sb = new StringBuilder();
+sb.append("Hello").append(" World");
+String result = sb.toString();
+```
+
+#### Common Utility Methods
+```java
+// String methods
+"Hello".length()                    // 5
+"Hello".charAt(1)                   // 'e'
+"Hello".substring(1, 3)             // "el"
+"Hello".toLowerCase()               // "hello"
+"Hello".toUpperCase()               // "HELLO"
+"Hello".indexOf('e')                // 1
+"Hello".contains("el")              // true
+"Hello".replace('l', 'p')           // "Heppo"
+"  Hello  ".trim()                  // "Hello"
+String.join("-", "a", "b", "c")     // "a-b-c"
+
+// Array methods
+Arrays.sort(arr)
+Arrays.binarySearch(arr, key)
+Arrays.fill(arr, value)
+Arrays.copyOf(arr, newLength)
+Arrays.equals(arr1, arr2)
+
+// Collections methods
+Collections.sort(list)
+Collections.reverse(list)
+Collections.shuffle(list)
+Collections.binarySearch(list, key)
+Collections.max(list)
+Collections.min(list)
+Collections.frequency(list, obj)
+```
+
+### 8.3 Important Interview Topics
+
+#### OOPs Concepts to Master
+1. **Encapsulation** - Getter/Setter, Data hiding
+2. **Inheritance** - Types, `super`, `this`
+3. **Polymorphism** - Overloading vs Overriding
+4. **Abstraction** - Abstract classes, Interfaces
+5. **Association, Aggregation, Composition**
+6. **Cohesion and Coupling**
+
+#### Multi-threading Concepts
+1. Thread lifecycle states
+2. `synchronized` keyword and its use
+3. `wait()`, `notify()`, `notifyAll()`
+4. Deadlock and prevention
+5. Thread pooling (ExecutorService)
+6. Concurrent Collections
+
+#### Collections Framework
+1. Hierarchy and interfaces
+2. Differences between List, Set, Map
+3. Implementation details (ArrayList vs LinkedList, etc.)
+4. Comparable vs Comparator
+5. Internal working of HashMap
+6. Custom sorting
+
+### 8.4 Java 8 Features (Important)
+```java
+// Lambda Expressions
+list.forEach(item -> System.out.println(item));
+
+// Functional Interfaces
+@FunctionalInterface
+interface MyInterface {
+    void execute();
+}
+
+// Method References
+list.forEach(System.out::println);
+list.forEach(String::toUpperCase);
+
+// Stream API
+list.stream()
+    .filter(s -> s.startsWith("A"))
+    .map(String::toUpperCase)
+    .sorted()
+    .collect(Collectors.toList());
+
+// Optional
+Optional<String> optional = Optional.ofNullable(getValue());
+optional.ifPresent(System.out::println);
+
+// Default methods in Interface
+interface DefaultInterface {
+    default void defaultMethod() {
+        System.out.println("Default method");
+    }
+}
+
+// Static methods in Interface
+interface StaticInterface {
+    static void staticMethod() {
+        System.out.println("Static method");
+    }
+}
+```
+
+### 8.5 Common Mistakes to Avoid
+1. ❌ Forgetting to override `equals()` and `hashCode()`
+2. ❌ Using == for string comparison
+3. ❌ Not handling exceptions properly
+4. ❌ Modifying collection while iterating
+5. ❌ Not using `finally` for resource cleanup
+6. ❌ Creating unnecessary objects
+7. ❌ Not understanding immutability
+8. ❌ Ignoring thread-safety issues
+

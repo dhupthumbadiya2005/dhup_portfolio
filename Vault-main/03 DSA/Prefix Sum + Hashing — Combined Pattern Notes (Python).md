@@ -1,0 +1,417 @@
+
+These two patterns are grouped together because **Hashing is the tool that makes Prefix Sum problems fast** — most of the hardest prefix-sum problems are actually "prefix sum + hashmap" combos. Learning them together builds the right instinct: whenever you're stuck on an O(n²) brute force involving sums, pairs, or counts, ask "can a hashmap make this O(n)?"
+
+---
+
+# PART 1: HASHING
+
+## When to think "Hashing"
+
+Trigger words/situations:
+
+- Need **O(1) lookup** — "does this exist", "have I seen this before"
+- Counting **frequency** of elements/characters
+- Finding **duplicates** or **pairs/groups** matching some condition
+- "Two elements that sum to X" (unsorted array — if sorted, use Two Pointers instead)
+- Grouping items by some derived key (anagrams, same remainder, etc.)
+
+**Core idea:** trade space for time. A hashmap/hashset turns "search/count" from O(n) into O(1).
+
+There are **3 sub-patterns**.
+
+---
+
+## SUB-PATTERN A: Existence / Lookup (HashSet)
+
+**Recognize:** "does X exist", "find duplicate", "longest sequence" type problems.
+
+**1. Two Sum (Easy — the most classic interview question of all)**
+
+```python
+def twoSum(nums, target):
+    seen = {}   # value -> index
+    for i, n in enumerate(nums):
+        complement = target - n
+        if complement in seen:
+            return [seen[complement], i]
+        seen[n] = i
+    return []
+```
+
+**Note:** unsorted array → hashmap (O(n)). If sorted, use Two Pointers instead (O(1) space).
+
+**2. Contains Duplicate (Easy)**
+
+```python
+def containsDuplicate(nums):
+    return len(nums) != len(set(nums))
+```
+
+**3. Longest Consecutive Sequence (Medium — very commonly asked)**
+https://leetcode.com/problems/longest-consecutive-sequence
+
+```python
+def longestConsecutive(nums):
+    num_set = set(nums)
+    best = 0
+    for n in num_set:
+        if n - 1 not in num_set:   # only start counting from sequence start
+            length = 1
+            while n + length in num_set:
+                length += 1
+            best = max(best, length)
+    return best
+```
+
+**Key insight:** only start a count from numbers that are the **start** of a sequence (i.e., `n-1` not in set) — this keeps it O(n) instead of O(n²).
+
+---
+
+## SUB-PATTERN B: Frequency Counting (HashMap as Counter)
+
+**Recognize:** "most frequent", "first unique", "valid anagram" type problems.
+
+**1. Valid Anagram (Easy)**
+
+```python
+from collections import Counter
+
+def isAnagram(s, t):
+    return Counter(s) == Counter(t)
+```
+
+**2. First Unique Character in a String (Easy)**
+
+```python
+from collections import Counter
+
+def firstUniqChar(s):
+    count = Counter(s)
+    for i, ch in enumerate(s):
+        if count[ch] == 1:
+            return i
+    return -1
+```
+
+**3. Top K Frequent Elements (Medium — common, bucket sort trick)**
+
+```python
+from collections import Counter
+
+def topKFrequent(nums, k):
+    count = Counter(nums)
+    buckets = [[] for _ in range(len(nums) + 1)]
+    for n, freq in count.items():
+        buckets[freq].append(n)
+
+    result = []
+    for freq in range(len(buckets) - 1, 0, -1):
+        for n in buckets[freq]:
+            result.append(n)
+            if len(result) == k:
+                return result
+    return result
+```
+
+**Key insight:** frequency can never exceed array length, so bucket by frequency → O(n), beats heap's O(n log k) when k is close to n.
+
+---
+
+## SUB-PATTERN C: Grouping by Derived Key
+	
+**Recognize:** "group elements that share some transformed property".
+
+**1. Group Anagrams (Medium — extremely common)**
+https://leetcode.com/problems/group-anagrams/submissions/2065115387/
+
+tuple can be map key list cant
+
+```python
+from collections import defaultdict
+
+def groupAnagrams(strs):
+    groups = defaultdict(list)
+    for s in strs:
+        key = ''.join(sorted(s))   # sorted string as grouping key
+        groups[key].append(s)
+    return list(groups.values())
+```
+
+**2. Isomorphic Strings (Easy)**
+
+```python
+def isIsomorphic(s, t):
+    map_s, map_t = {}, {}
+    for a, b in zip(s, t):
+        if a in map_s and map_s[a] != b:
+            return False
+        if b in map_t and map_t[b] != a:
+            return False
+        map_s[a] = b
+        map_t[b] = a
+    return True
+```
+
+---
+
+## Hashing Quick Recall
+
+|Sub-pattern|Trigger phrase|Structure used|
+|---|---|---|
+|Existence/lookup|"does X exist", "find pair", "longest sequence"|HashSet or HashMap (value→index)|
+|Frequency counting|"most frequent", "first unique", "anagram check"|Counter / HashMap (value→count)|
+|Grouping|"group by property"|defaultdict(list), key = derived signature|
+
+---
+
+# PART 2: PREFIX SUM
+
+## When to think "Prefix Sum"
+
+Trigger words/situations:
+
+- "Sum of subarray from index i to j" — especially **multiple queries**
+- "Subarray sum equals K"
+- "Equilibrium index" / "pivot index" (left sum == right sum)
+- Counting subarrays matching a sum/property → running sum + hashmap
+- "Product of array except self" (prefix × suffix variant)
+
+**Core idea:** precompute cumulative sums once, so any range-sum query becomes O(1) instead of O(n). Turns O(n²)/O(n·q) brute force into O(n).
+
+There are **3 sub-patterns**.
+
+---
+
+## SUB-PATTERN A: Basic Prefix Sum Array (Range Sum Queries)
+
+**Recognize:** many repeated "sum from i to j" queries on a static array.
+
+**Template:**
+
+```python
+def build_prefix(arr):
+    prefix = [0] * (len(arr) + 1)
+    for i in range(len(arr)):
+        prefix[i + 1] = prefix[i] + arr[i]
+    return prefix
+
+def range_sum(prefix, i, j):
+    # sum of arr[i..j] inclusive
+    return prefix[j + 1] - prefix[i]
+```
+
+### Most asked problems
+
+**1. Range Sum Query — Immutable (Easy — the textbook problem)**
+
+```python
+class NumArray:
+    def __init__(self, nums):
+        self.prefix = [0] * (len(nums) + 1)
+        for i, n in enumerate(nums):
+            self.prefix[i + 1] = self.prefix[i] + n
+
+    def sumRange(self, left, right):
+        return self.prefix[right + 1] - self.prefix[left]
+```
+
+**2. Find Pivot Index / Equilibrium Index (Easy)**
+
+```python
+def pivotIndex(nums):
+    total = sum(nums)
+    left_sum = 0
+    for i, n in enumerate(nums):
+        if left_sum == total - left_sum - n:
+            return i
+        left_sum += n
+    return -1
+```
+
+**3. Running Sum of 1d Array (Easy)**
+
+```python
+def runningSum(nums):
+    for i in range(1, len(nums)):
+        nums[i] += nums[i - 1]
+    return nums
+```
+
+---
+
+## SUB-PATTERN B: Prefix Sum + HashMap (Count/Find Subarrays)
+
+**Recognize:** "number of subarrays with sum == k" or "longest subarray with sum == k" — array can have **negative numbers**, so sliding window won't work here. **This is where Hashing and Prefix Sum merge — the single most-asked problem type in this combined set.**
+
+**Core idea:** `sum(i..j) = prefix[j] - prefix[i-1]`. So if we want `sum(i..j) == k`, we need `prefix[i-1] == prefix[j] - k`. Track how many times each prefix sum value has occurred using a hashmap as you go.
+
+**Template:**
+
+```python
+from collections import defaultdict
+
+def subarray_sum_equals_k(arr, k):
+    count = defaultdict(int)
+    count[0] = 1        # empty prefix
+    curr_sum = 0
+    result = 0
+    for n in arr:
+        curr_sum += n
+        result += count[curr_sum - k]   # how many earlier prefixes make this work
+        count[curr_sum] += 1
+    return result
+```
+
+### Most asked problems
+
+**1. Subarray Sum Equals K (Medium — master this, appears everywhere)**
+https://leetcode.com/problems/subarray-sum-equals-k/submissions/2065748794/
+
+```python
+from collections import defaultdict
+
+def subarraySum(nums, k):
+    count = defaultdict(int)
+    count[0] = 1r
+    curr_sum = 0
+    result = 0
+    for n in nums:
+        curr_sum += n
+        result += count[curr_sum - k]
+        count[curr_sum] += 1
+    return result
+```
+
+**2. Continuous Subarray Sum (Medium — sum divisible by k)**
+
+https://leetcode.com/problems/continuous-subarray-sum/submissions/2065777564/
+
+```python
+class Solution(object):
+    def checkSubarraySum(self, nums, k):
+        mp = {}
+        mp[0] = -1
+        curr_sum = 0
+        
+        for i in range(len(nums)) : 
+            curr_sum += nums[i] 
+            
+            if(curr_sum % k in mp) : 
+                if(i - mp[curr_sum % k] >= 2 ) : 
+                    return True
+            else : 
+                mp[curr_sum % k] = i 
+        return False
+```
+
+**3. Subarray Sums Divisible by K (Medium)** — same idea, count all pairs sharing a remainder using the Sub-pattern B template with `curr_sum % k` as the key.
+
+**4. Contiguous Array (Medium — equal 0s and 1s)**
+
+```python
+def findMaxLength(nums):
+    seen = {0: -1}
+    curr_sum = 0
+    best = 0
+    for i, n in enumerate(nums):
+        curr_sum += 1 if n == 1 else -1
+        if curr_sum in seen:
+            best = max(best, i - seen[curr_sum])
+        else:
+            seen[curr_sum] = i
+    return best
+```
+
+**Trick:** treat 0 as -1, 1 as +1 — "equal count of 0s and 1s" becomes "subarray sum == 0", solved with prefix sum + hashmap.
+
+---
+
+## SUB-PATTERN C: Prefix + Suffix Product/Sum (Two-Direction Precompute)
+
+**Recognize:** need info from both left side and right side of each index simultaneously, without division.
+
+**1. Product of Array Except Self (Medium — very frequently asked)**
+
+```python
+def productExceptSelf(nums):
+    n = len(nums)
+    res = [1] * n
+
+    prefix = 1
+    for i in range(n):
+        res[i] = prefix
+        prefix *= nums[i]
+
+    suffix = 1
+    for i in range(n - 1, -1, -1):
+        res[i] *= suffix
+        suffix *= nums[i]
+
+    return res
+```
+
+**Key insight:** `res[i]` = (product of everything left of i) × (product of everything right of i). Left pass, then right pass — no division, O(1) extra space (excluding output).
+
+**2. Trapping Rain Water (prefix max / suffix max — alternative lens to the two-pointer version you already know)**
+
+```python
+def trap(height):
+    n = len(height)
+    left_max = [0] * n
+    right_max = [0] * n
+
+    left_max[0] = height[0]
+    for i in range(1, n):
+        left_max[i] = max(left_max[i - 1], height[i])
+
+    right_max[n - 1] = height[n - 1]
+    for i in range(n - 2, -1, -1):
+        right_max[i] = max(right_max[i + 1], height[i])
+
+    return sum(min(left_max[i], right_max[i]) - height[i] for i in range(n))
+```
+
+---
+
+## Prefix Sum Quick Recall
+
+|Sub-pattern|Trigger phrase|Key formula|
+|---|---|---|
+|Basic prefix array|multiple "sum from i to j" queries|`prefix[j+1] - prefix[i]`|
+|Prefix + hashmap|"subarray sum == k" (negatives allowed)|`count[curr_sum - k]`|
+|Prefix + suffix|need left AND right info per index|two passes, combine at end|
+
+---
+
+## Combined One-Line Decision Rule
+
+> Need O(1) lookup/count/duplicate check → **Hashing**. Need range-sum on a static array with many queries → **basic prefix array**. "Count/find subarray with sum == k" and array has negatives (sliding window fails) → **prefix sum + hashmap** (the fusion of both patterns). Need product/max/min using both left and right side of every index → **prefix + suffix double pass**.
+
+---
+
+## Practice list (do in this order — ~18 problems total)
+
+**Hashing first (8):**
+
+1. Two Sum
+2. Contains Duplicate
+3. Valid Anagram
+4. First Unique Character in a String
+5. Longest Consecutive Sequence
+6. Group Anagrams
+7. Top K Frequent Elements
+8. Isomorphic Strings
+
+**Prefix Sum next (10):**
+9. Running Sum of 1d Array
+10. Range Sum Query — Immutable 
+11. Find Pivot Index 
+12. Subarray Sum Equals K -  https://leetcode.com/problems/find-pivot-index/submissions/2065955051/
+13. Product of Array Except Self 
+14. Contiguous Array 
+15. Continuous Subarray Sum - not fully solved becuase it use dequeue less important
+16. Subarray Sums Divisible by K 
+17. Maximum Size Subarray Sum Equals K (variant of #12, track earliest index instead of count) 
+18. Trapping Rain Water (revisit — solve via prefix/suffix this time)
+
+**Rule of thumb before moving on:** the moment you see "subarray sum" + negatives possible, your hand should reach for `prefix_sum + hashmap` without even considering sliding window. And any time you catch yourself writing a nested loop just to check "does this exist" — stop, that's a hashmap.

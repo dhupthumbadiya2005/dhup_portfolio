@@ -1,0 +1,204 @@
+## 1. Introduction to RAG & Architecture
+
+### What is RAG?
+
+**Retrieval-Augmented Generation (RAG)** is an AI framework where a Large Language Model (LLM) pulls relevant facts from an external database before writing a response.
+
+> **Analogy:** Think of a standard LLM as taking a closed-book exam relying only on memory. RAG converts it into an **open-book exam**, allowing the AI to look up specific pages in a reference textbook before answering.
+
+### What Problem Does It Solve & Why Use It?
+
+- **Eliminates Hallucinations:** Prevents the AI from making up believable but wrong facts by forcing it to ground answers in real source material.
+- **Access to Private/Custom Data:** Standard LLMs do not know internal company docs, personal notes, or proprietary codebases. RAG safely connects them without exposing data to public model training.
+- **Real-time Knowledge:** Updating a model's knowledge only requires dropping a new PDF into a database rather than spending millions of dollars retraining the AI.
+
+### RAG vs. Fine-Tuning
+
+|Feature|RAG|Fine-Tuning|
+|---|---|---|
+|**Analogy**|Giving a student an **open reference book**.|Sending a student to **intensive training camp**.|
+|**Best For**|Fact retrieval, rapidly changing data, private files.|Learning a specific tone, style, output format (e.g., JSON), or specialized jargon.|
+|**Cost & Speed**|Cheap, updates instantly when documents change.|Expensive, requires GPU hours and time to re-train.|
+|**Citations**|High capability (can point to exact line numbers/files).|Low capability (cannot cite specific sources reliably).|
+
+### End-to-End RAG Pipeline Overview
+
+```text
+[ Data Ingestion ]
+Raw Files ──> Chunker ──> Embedding Model ──> Vector DB (Milvus)
+
+[ Query Processing ]
+User Question ──> Query Embedding ──> Vector Search ──> Top-K Chunks ──> Prompt Construction ──> LLM ──> Answer
+```
+
+## 2. Vector Embeddings
+
+### What is an Embedding?
+
+An **embedding** is a list of numbers (a high-dimensional vector) that captures the underlying **semantic meaning** and context of text, rather than just matching raw words.
+
+### Why Convert Text into Vectors?
+
+Computers cannot natively understand the conceptual meaning of words—they only understand numbers. Converting text to vectors allows us to perform high-speed geometric distance math to determine if two pieces of text are related.
+
+- _"King"_ and _"Queen"_ will sit very close together in vector space.
+    
+- _"Apple"_ (fruit) and _"iPhone"_ will sit further apart than _"Apple"_ and _"Banana"_.
+    
+
+### Embedding Models & Selection
+
+When choosing an embedding model, the balance comes down to **dimensions vs. performance**:
+
+- **OpenAI (text-embedding-3-small / large):**`text-embedding-3-small``large` High accuracy, easy API, paid per token.
+    
+- **BGE (bge-small-en-v1.5) / Sentence-Transformers (all-MiniLM-L6-v2):**`bge-small-en-v1.5``all-MiniLM-L6-v2` Extremely fast, open-source, runs locally on CPU/GPU without API costs.
+    
+
+### Cosine Similarity
+
+Cosine Similarity measures the **angle** between two vectors in space to determine how similar they are, producing a score between `-1` and `1`:
+
+- `1.0`**1.0:** Identical semantic meaning.
+    
+- `0.0`**0.0:** Unrelated/orthogonal concepts.
+    
+- `-1.0`**-1.0:** Directly opposite meaning.
+    
+
+$$\text{Cosine Similarity} = \frac{\mathbf{A} \cdot \mathbf{B}}{\Vert{}\mathbf{A}\Vert{} \Vert{}\mathbf{B}\Vert{}}$$
+
+## 3. Document Chunking
+
+### Why Chunk Documents?
+
+Large language models have strict **context limits**, and embedding models cannot compress an entire 100-page document into a single vector without losing key details. Chunking breaks large files into smaller, focused text blocks.
+
+### Key Concepts & Trade-offs
+
+- **Chunk Size:** The number of characters/tokens per chunk (e.g., 512 or 1000 tokens).
+    
+    - _Too small:_ Loses surrounding context.
+        
+    - _Too large:_ Dilutes the main topic, lowering search precision.
+        
+- **Chunk Overlap:** Including a small portion of the previous chunk in the next one (e.g., 10–15% overlap).
+    
+    - _Why?_ Prevents sentences or ideas from getting split in half right at the chunk boundary.
+        
+
+## 4. Vector Databases (Milvus Focus)
+
+### What is a Vector Database?
+
+A specialized database engine engineered specifically to store, index, and rapidly query high-dimensional vector embeddings using Approximate Nearest Neighbor (ANN) search algorithms.
+
+### Why Not SQL (e.g., PostgreSQL / MySQL)?
+
+- **Query Type:** SQL uses strict relational rules (`WHERE column = 'value'`). Vector DBs perform **geometric similarity calculations** across hundreds of numerical dimensions.
+    
+- **Scale & Latency:** Standard SQL databases struggle with performance once vector collections reach millions of high-dimensional rows.
+    
+
+### Core Milvus Concepts
+
+- **Collection:** Equivalent to a **table** in SQL. It groups related vectors, schema configurations, and metadata attributes together.
+    
+- **Index:** The underlying search structure built on vectors (e.g., **HNSW**, **IVF_FLAT**) to enable sub-linear search speeds.
+    
+- **Similarity Search:** The mathematical routine of finding vectors physically closest to the query vector.
+    
+- **Top-K Search:** Specifying the exact number (K) of closest matching context results to return (e.g., K=3).
+    
+
+## 5. Retrieval & Prompting Workflow
+
+### The Retrieval Mechanics
+
+1. **User Query:** The user submits a natural language question.
+    
+2. **Embedding Generation:** The query is passed through the embedding model to create a search vector.
+    
+3. **Similarity Search:** The vector database compares the query vector against stored chunk vectors.
+    
+4. **Top-K Retrieval:** The top matching text chunks are pulled along with their text payloads.
+    
+5. **Prompt Injection:** The retrieved text chunks are formatted directly into an augmented system prompt.
+    
+
+### Constructing the Augmented Prompt
+
+To ensure accurate responses without hallucination, context is injected into a structured system prompt template:
+
+```text
+You are a helpful technical assistant. Answer the user's question using 
+ONLY the provided context below. If the context does not contain enough 
+information to answer, state "I do not have enough information."
+
+Context:
+---
+[Chunk 1 Text]
+---
+[Chunk 2 Text]
+---
+[Chunk 3 Text]
+
+User Question: {user_question}
+Answer:
+```
+
+## 6. LangChain Core Classes
+
+| Class            | Purpose                                                                                   |
+| ---------------- | ----------------------------------------------------------------------------------------- |
+| `DocumentLoader` | Parses raw files (PDFs, CSVs, Webpages) into plain text objects.                          |
+| `TextSplitter`   | Handles breaking text into chunks with defined sizes and overlaps.                        |
+| `Embeddings`     | Wrapper interface to convert text into vector arrays using models (OpenAI, HuggingFace).  |
+| `VectorStore`    | Abstraction layer connecting code to databases like Milvus, Pinecone, or Chroma.          |
+| `Retriever`      | Takes a query string and returns relevant `Document` objects from the vector store.       |
+| `PromptTemplate` | Dynamically injects context variables and user queries into standard instruction formats. |
+| `LCEL Runnable`  | LangChain Expression Language for piping operations together cleanly (`retriever          |
+
+----
+
+
+
+
+## 1. Advanced Chunking Methods
+
+- **Fixed-Size Chunking:** Splits text by a set character or token count regardless of structure. Fast, but can cut off sentences mid-thought.
+    
+- **Recursive Chunking (Recommended):** Attempts to split by logical separators in order (e.g., `\n\n` \rightarrow `\n` \rightarrow `" "`). Maintains paragraph and sentence structure intact.
+    
+- **Semantic Chunking:** Calculates embedding distances between adjacent sentences and creates a boundary whenever the semantic distance spikes. Ensures each chunk contains a single coherent topic.
+    
+
+## 2. Vector DB Landscape & Selection Rationale
+
+|Database|Type|Primary Strength|
+|---|---|---|
+|**Milvus**|Distributed / Open-source|Enterprise-grade, handles billions of vectors, highly scalable cloud/on-prem deployments.|
+|**Pinecone**|Fully Managed SaaS|Zero infrastructure management, easy to set up.|
+|**Chroma**|Lightweight / In-memory|Excellent for local prototyping and rapid experimentation.|
+|**FAISS**|Library (Meta)|High-performance vector search library, but lacks traditional database management features.|
+
+**Why Milvus?** Milvus provides high throughput, native support for advanced indexing like HNSW, and allows full control over vector deployment without vendor lock-in.
+
+## 3. Metadata Filtering
+
+**Metadata Filtering** allows applying traditional database rules alongside vector searches to narrow down candidate results before or during vector evaluation.
+
+```python
+# Example: Search vectors matching the prompt, but strictly inside PDF files updated in 2026
+results = vector_store.similarity_search(
+    query="What are the Q3 security rules?",
+    k=3,
+    filter={"file_type": "pdf", "year": 2026}
+)
+```
+
+### Benefits
+
+- **Accuracy:** Guarantees user roles, categories, or date ranges are strictly respected.
+    
+- **Performance:** Shrinks the search space so vector distance calculations run faster.

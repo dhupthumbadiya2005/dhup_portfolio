@@ -1,0 +1,233 @@
+{
+  "main": {
+    "id": "04c98c2447ed9b5f",
+    "type": "split",
+    "children": [
+      {
+        "id": "c051d90283f2daa8",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a8f02a50a17a4985",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "0ef5ac3cead3e147",
+    "type": "split",
+    "children": [
+      {
+        "id": "3f51bd6a7fbd9844",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "5d5440b0d8d7be2c",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "86b60dad957b351f",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "a24da51920e3225c",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 200
+  },
+  "right": {
+    "id": "6162060e9186db74",
+    "type": "split",
+    "children": [
+      {
+        "id": "c65b1556882f1889",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ed189358beca8612",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "01 Learning/Resume.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "cd6b872e63ccf361",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "b852ebd523ee821d",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "d1a9339ec8745d62",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "3fdabea87a95471a",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "5d5440b0d8d7be2c",
+  "lastOpenFiles": [
+    "01 Learning/RAG.md",
+    "01 Learning/Resume.md",
+    "01 Learning/Cloud & Devops.md",
+    "08 System Design/System Design KodeKloud.md",
+    "03 DSA/Prefix Sum + Hashing — Combined Pattern Notes (Python).md",
+    "03 DSA/Binary Search (+ Binary Search on Answer) — Complete Pattern Notes (Python).md",
+    "05 OS/Operating System.md",
+    "04 DBMS/images/Pasted image 20260726112513.png",
+    "04 DBMS/images/Pasted image 20260726113057.png",
+    "04 DBMS/images/Pasted image 20260726144725.png",
+    "04 DBMS/images/Pasted image 20260726113131.png",
+    "04 DBMS/images/Pasted image 20260726113502.png",
+    "04 DBMS/images/Pasted image 20260726123944.png",
+    "04 DBMS/images/Pasted image 20260726115158.png",
+    "04 DBMS/images/Pasted image 20260726113821.png",
+    "04 DBMS/images/Pasted image 20260726144818.png",
+    "04 DBMS/SQL.md",
+    "04 DBMS/DBMS.md",
+    "04 DBMS/images",
+    "03 DSA/Two Pointers — Complete Pattern Notes (Python).md",
+    "03 DSA/Trees + Graphs — Complete Pattern Notes (Python).md",
+    "03 DSA/Sliding Window — Complete Pattern Notes (Python).md",
+    "03 DSA/Recursion + Backtracking — Essentials Only (Python).md",
+    "03 DSA/Linked List + Stack + Queue — Combined Pattern Notes (Python).md",
+    "images/Pasted image 20260716205049.png",
+    "07 CCN/CCN.md",
+    "07 CCN/images",
+    "08 System Design",
+    "Archive.zip",
+    "2026-08-02.md",
+    "Untitled 1.canvas",
+    "Untitled.base",
+    "06 OOPS/Java OOP, SOLID & Design Patterns — Complete Interview Guide.md",
+    "Untitled.canvas",
+    "07 CCN",
+    "Pasted image 20260801154247.md",
+    "05 OS/images/Untitled.md",
+    "05 OS/images",
+    "06 OOPS/Questions.md",
+    "06 OOPS/OOPS with Java.md",
+    "06 OOPS",
+    "04 DBMS/SQL Core Concepts + Full Practice Question Bank (Interview Edition).md",
+    "01 Learning/API.md",
+    "05 OS",
+    "04 DBMS",
+    "03 Interview Prep/Patterns.md",
+    "Fix.md",
+    "03 Interview Prep/Stack Patterns for Tech Interviews (Python).md"
+  ]
+}
