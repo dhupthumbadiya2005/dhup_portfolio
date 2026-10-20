@@ -10,7 +10,20 @@ export function ProseMarkdown({ children, className }: { children: string; class
         className
       )}
     >
-      <Markdown>{children}</Markdown>
+      <Markdown
+        components={{
+          a: ({ href, children }) =>
+            href?.startsWith("http") ? (
+              <a href={href} target="_blank" rel="noopener noreferrer">
+                {children}
+              </a>
+            ) : (
+              <a href={href}>{children}</a>
+            ),
+        }}
+      >
+        {children}
+      </Markdown>
     </div>
   );
 }

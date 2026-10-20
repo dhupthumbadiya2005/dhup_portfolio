@@ -30,7 +30,7 @@ Before PipelineAI, I interned at [WotNot Solutions](https://wotnot.io), building
 
 I'm a final-year B.Tech student in Information and Communication Technology at [Pandit Deendayal Energy University](https://pdpu.ac.in), graduating in 2027. Lately I've been building [Manimation](https://github.com/dhupthumbadiya2005/Manimation), a multi-agent system that turns a single prompt into a narrated 3Blue1Brown-style math video, and I'm currently writing a journal paper on it.
 
-Take a look at my [projects](/projects), [experience](/experience) and [blog](/blog), or reach me via [email](mailto:dhupthumbadiya2005@gmail.com) or [call me](tel:+917861986355).`,
+Take a look at my [projects](/projects), [experience](/experience) and [blog](/blog), or reach me via [email](mailto:dhupthumbadiya2005@gmail.com) or drop me a DM on [WhatsApp](https://wa.me/917861986355).`,
   avatarUrl: "/me.png",
 
   // ── Skills ───────────────────────────────────────────────────────────────
