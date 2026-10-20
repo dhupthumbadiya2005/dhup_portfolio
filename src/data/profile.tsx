@@ -28,9 +28,9 @@ export const PROFILE = {
 
 Before PipelineAI, I interned at [WotNot Solutions](https://wotnot.io), building real-time voice agents with sub-700ms latency — integrating STT, TTS and VAD models with LLMs — and end-to-end RAG pipelines.
 
-I'm a final-year B.Tech student in Information and Communication Technology at [Pandit Deendayal Energy University](https://pdpu.ac.in). Lately I've been building [Manimation](https://github.com/dhupthumbadiya2005/Manimation), a multi-agent system that turns a single prompt into a narrated 3Blue1Brown-style math video, and I'm currently writing a journal paper on it.
+I'm a final-year B.Tech student in Information and Communication Technology at [Pandit Deendayal Energy University](https://pdpu.ac.in), graduating in 2027. Lately I've been building [Manimation](https://github.com/dhupthumbadiya2005/Manimation), a multi-agent system that turns a single prompt into a narrated 3Blue1Brown-style math video, and I'm currently writing a journal paper on it.
 
-Take a look at my [projects](/projects), [experience](/experience) and [blog](/blog), or reach me at [${"dhupthumbadiya2005@gmail.com"}](mailto:dhupthumbadiya2005@gmail.com).`,
+Take a look at my [projects](/projects), [experience](/experience) and [blog](/blog), or reach me via [email](mailto:dhupthumbadiya2005@gmail.com) or [call me](tel:+917861986355).`,
   avatarUrl: "/me.png",
 
   // ── Skills ───────────────────────────────────────────────────────────────
@@ -172,7 +172,7 @@ Take a look at my [projects](/projects), [experience](/experience) and [blog](/b
       company: "WotNot Solutions Pvt. Ltd.",
       href: "https://wotnot.io",
       badges: ["Summer Internship"],
-      location: "Remote",
+      location: "Ahmedabad, India",
       title: "AI Backend Engineer Intern",
       logoUrl: "/wotnot.png",
       start: "May 2026",
