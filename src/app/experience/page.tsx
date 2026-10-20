@@ -15,7 +15,7 @@ function Heading({ children }: { children: React.ReactNode }) {
 
 function Bullets({ items }: { items: readonly string[] }) {
   return (
-    <ul className="mt-2 list-disc space-y-1.5 pl-5 text-[15px] leading-relaxed text-foreground/85">
+    <ul className="mt-2 list-disc space-y-1.5 pl-5 text-justify hyphens-auto text-[15px] leading-relaxed text-foreground/85">
       {items.map((item) => (
         <li key={item}>{item}</li>
       ))}
@@ -127,7 +127,7 @@ export default function ExperiencePage() {
                 </span>
               </div>
               {hackathon.description && (
-                <p className="mt-1 text-[15px] leading-relaxed text-foreground/85">
+                <p className="mt-1 text-justify hyphens-auto text-[15px] leading-relaxed text-foreground/85">
                   {hackathon.description}
                 </p>
               )}

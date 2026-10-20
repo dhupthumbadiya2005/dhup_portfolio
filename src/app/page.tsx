@@ -27,7 +27,7 @@ export default function Page() {
         {UPDATES.map((update, i) => (
           <p
             key={i}
-            className="border-b border-border py-4 text-sm leading-relaxed text-foreground/90 last:border-0 [&_a]:text-blue-600 [&_a:hover]:underline dark:[&_a]:text-blue-400 [&_strong]:font-semibold [&_strong]:text-foreground"
+            className="border-b border-border py-4 text-justify hyphens-auto text-sm leading-relaxed text-foreground/90 last:border-0 [&_a]:text-blue-600 [&_a:hover]:underline dark:[&_a]:text-blue-400 [&_strong]:font-semibold [&_strong]:text-foreground"
           >
             <span className="font-semibold text-blue-600 dark:text-blue-400">{update.date}:</span>{" "}
             <Markdown components={{ p: ({ children }) => <>{children}</> }}>{update.text}</Markdown>

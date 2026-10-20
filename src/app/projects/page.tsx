@@ -43,13 +43,13 @@ export default function ProjectsPage() {
                   {project.dates}
                 </span>
               </div>
-              <p className="mt-1 text-[15px] text-foreground/90">{project.description}</p>
+              <p className="mt-1 text-justify hyphens-auto text-[15px] text-foreground/90">{project.description}</p>
               {"status" in project && project.status && (
                 <p className="mt-1.5 text-sm font-semibold text-amber-600 dark:text-amber-400">
                   {project.status}
                 </p>
               )}
-              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-foreground/80">
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-justify hyphens-auto text-sm leading-relaxed text-foreground/80">
                 {project.highlights.map((h) => (
                   <li key={h}>{h}</li>
                 ))}
