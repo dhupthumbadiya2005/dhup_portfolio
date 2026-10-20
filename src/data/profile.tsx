@@ -21,27 +21,75 @@ export const PROFILE = {
   location: "Gandhinagar, India",
   locationLink: "https://www.google.com/maps/place/Gandhinagar",
   description:
-    "AI & Full Stack Developer. I love building AI-powered products and solving real-world problems. Always shipping something new.",
-  summary:
-    "I'm a pre-final year B.Tech student in Information and Communication Technology at [PDEU, Gandhinagar](/#education). Previously interned at [WotNot Solutions](https://wotnot.io), an AI automation company, where I worked on their voice agent platform — integrating multiple TTS, STT, and VAD models and building end-to-end RAG pipelines. I've shipped SaaS products, AI/ML platforms, and developer tools.",
+    "Backend & AI Engineer. I build AI agents, LLM-powered products and scalable backends — and ship them to production.",
+  // Home page intro — markdown, paragraphs separated by a blank line.
+  headline: "Backend AI Engineer Intern at PipelineAI",
+  summary: `I am a Backend AI Engineer Intern at [PipelineAI](https://addpipeline.ai), where I build AI agents, LLM integrations, GTM engineering workflows and the scalable backends that power them.
+
+Before PipelineAI, I interned at [WotNot Solutions](https://wotnot.io), building real-time voice agents with sub-700ms latency — integrating STT, TTS and VAD models with LLMs — and end-to-end RAG pipelines.
+
+I'm a final-year B.Tech student in Information and Communication Technology at [Pandit Deendayal Energy University](https://pdpu.ac.in). Lately I've been building [Manimation](https://github.com/dhupthumbadiya2005/Manimation), a multi-agent system that turns a single prompt into a narrated 3Blue1Brown-style math video, and I'm currently writing a journal paper on it.
+
+Take a look at my [projects](/projects), [experience](/experience) and [blog](/blog), or reach me at [${"dhupthumbadiya2005@gmail.com"}](mailto:dhupthumbadiya2005@gmail.com).`,
   avatarUrl: "/me.png",
 
   // ── Skills ───────────────────────────────────────────────────────────────
-  // Add { name: "SkillName", icon: SvgComponent } for skills with icons.
-  // Add { name: "SkillName", icon: undefined } for text-only badges.
-  skills: [
-    { name: "TypeScript", icon: Typescript },
-    { name: "Python", icon: Python },
-    { name: "Java", icon: Java },
-    { name: "Next.js", icon: NextjsIconDark },
-    { name: "React", icon: ReactLight },
-    { name: "Node.js", icon: Nodejs },
-    { name: "FastAPI", icon: undefined },
-    { name: "PostgreSQL", icon: Postgresql },
-    { name: "MongoDB", icon: undefined },
-    { name: "Docker", icon: Docker },
-    { name: "OpenAI", icon: undefined },
-    { name: "AWS", icon: undefined },
+  // Grouped by area. Add { name, icon } — icon is optional (an SVG component).
+  skillGroups: [
+    {
+      label: "AI / LLM",
+      skills: [
+        { name: "OpenAI", icon: undefined },
+        { name: "Claude", icon: undefined },
+        { name: "Gemini", icon: undefined },
+        { name: "Groq", icon: undefined },
+        { name: "AI Agents", icon: undefined },
+        { name: "RAG", icon: undefined },
+        { name: "Prompt Engineering", icon: undefined },
+        { name: "Pipecat", icon: undefined },
+        { name: "Deepgram / ElevenLabs", icon: undefined },
+      ],
+    },
+    {
+      label: "Backend",
+      skills: [
+        { name: "Python", icon: Python },
+        { name: "FastAPI", icon: undefined },
+        { name: "Node.js", icon: Nodejs },
+        { name: "Express", icon: undefined },
+        { name: "REST APIs", icon: undefined },
+        { name: "Java", icon: Java },
+      ],
+    },
+    {
+      label: "Data",
+      skills: [
+        { name: "PostgreSQL", icon: Postgresql },
+        { name: "MongoDB", icon: undefined },
+        { name: "Prisma", icon: undefined },
+        { name: "Supabase", icon: undefined },
+        { name: "InfluxDB", icon: undefined },
+      ],
+    },
+    {
+      label: "Cloud & Tools",
+      skills: [
+        { name: "Docker", icon: Docker },
+        { name: "AWS", icon: undefined },
+        { name: "Oracle Cloud", icon: undefined },
+        { name: "Vercel", icon: undefined },
+        { name: "Twilio", icon: undefined },
+        { name: "Git", icon: undefined },
+      ],
+    },
+    {
+      label: "Frontend",
+      skills: [
+        { name: "TypeScript", icon: Typescript },
+        { name: "Next.js", icon: NextjsIconDark },
+        { name: "React", icon: ReactLight },
+      ],
+    },
   ],
 
   // ── Navbar ────────────────────────────────────────────────────────────────
@@ -105,6 +153,22 @@ export const PROFILE = {
   // logoUrl: place the company logo in /public and reference it here.
   work: [
     {
+      company: "PipelineAI",
+      href: "https://addpipeline.ai",
+      badges: ["Intern"],
+      location: "Remote",
+      title: "Backend AI Engineer Intern",
+      logoUrl: "/pipelineai.png",
+      start: "Sep 2026",
+      end: undefined,
+      description: [
+        "Building scalable backend services and APIs that power the core PipelineAI product.",
+        "Designing and shipping AI agents and LLM integrations — tool calling, prompt pipelines and evaluation for production workflows.",
+        "Working on GTM engineering — integrations and automation that connect AI workflows to go-to-market systems.",
+        "Working end-to-end on product building, from backend architecture to integrations and deployment.",
+      ],
+    },
+    {
       company: "WotNot Solutions Pvt. Ltd.",
       href: "https://wotnot.io",
       badges: ["Summer Internship"],
@@ -113,8 +177,12 @@ export const PROFILE = {
       logoUrl: "/wotnot.png",
       start: "May 2026",
       end: "July 2026",
-      description:
-        "Engineered a real-time voice agent pipeline using Pipecat, achieving sub-700ms response latency. Integrated multi-modal STT/TTS services (Deepgram, ElevenLabs, Cartesia) with OpenAI LLMs and RAG knowledge bases. Deployed full-stack voice solutions on Oracle VM with multi-channel access via Web and Call (Twilio). Architected a specialized RAG pipeline for an e-commerce platform enabling intelligent product retrieval via natural language.",
+      description: [
+        "Engineered a real-time voice agent pipeline using Pipecat, achieving sub-700ms response latency.",
+        "Integrated multi-modal STT/TTS services (Deepgram, ElevenLabs, Cartesia) with OpenAI LLMs and RAG knowledge bases.",
+        "Deployed full-stack voice solutions on Oracle VM with multi-channel access via Web and Call (Twilio).",
+        "Architected a specialized RAG pipeline for an e-commerce platform enabling intelligent product retrieval via natural language.",
+      ],
     },
     {
       company: "PDEU IIC (INavLabs)",
@@ -125,8 +193,10 @@ export const PROFILE = {
       logoUrl: "/i-nav-labs.png",
       start: "Nov 2024",
       end: "Feb 2025",
-      description:
-        "Built a full-stack web app using Next.js and FastAPI with 5+ REST APIs; designed database schema and implemented CRUD operations. Tested and validated APIs using Postman; collaborated with the team for backend integration and database design.",
+      description: [
+        "Built a full-stack web app using Next.js and FastAPI with 5+ REST APIs; designed database schema and implemented CRUD operations.",
+        "Tested and validated APIs using Postman; collaborated with the team for backend integration and database design.",
+      ],
     },
   ],
 

@@ -1,6 +1,5 @@
-import Navbar from "@/components/navbar";
-import { FloatingSidebar } from "@/components/floating-sidebar";
-import { TechSidePanels } from "@/components/tech-side-panels";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DATA } from "@/data/resume";
@@ -9,7 +8,6 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { FlickeringGrid } from "@/components/magicui/flickering-grid";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -73,30 +71,18 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen bg-background font-sans antialiased relative",
+          "min-h-screen flex flex-col bg-background font-sans antialiased",
           geist.variable,
           geistMono.variable
         )}
       >
         <ThemeProvider attribute="class" defaultTheme="light">
           <TooltipProvider delayDuration={0}>
-            <div className="absolute inset-0 top-0 left-0 right-0 h-[100px] overflow-hidden z-0">
-              <FlickeringGrid
-                className="h-full w-full"
-                squareSize={2}
-                gridGap={2}
-                style={{
-                  maskImage: "linear-gradient(to bottom, black, transparent)",
-                  WebkitMaskImage: "linear-gradient(to bottom, black, transparent)",
-                }}
-              />
-            </div>
-            <div className="relative z-10 max-w-2xl mx-auto py-12 pb-24 sm:py-24 px-6">
+            <SiteHeader />
+            <div className="mx-auto w-full max-w-3xl flex-1 px-5 pt-10 pb-4">
               {children}
             </div>
-            <TechSidePanels />
-            <FloatingSidebar />
-            <Navbar />
+            <SiteFooter />
           </TooltipProvider>
         </ThemeProvider>
           <Script
