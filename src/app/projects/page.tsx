@@ -25,7 +25,7 @@ export default function ProjectsPage() {
                 <img
                   src={project.image}
                   alt={project.title}
-                  className="aspect-video w-full rounded-lg border border-border object-cover sm:w-52"
+                  className="aspect-video w-full rounded-lg border border-border object-cover sm:w-52 lg:w-64"
                 />
               </Link>
             )}
